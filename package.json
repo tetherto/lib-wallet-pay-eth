@@ -1,0 +1,14 @@
+{
+  "name": "lib-wallet-pay-eth",
+  "version": "0.0.1",
+  "description": "Ethereum and ERC20 token asset lib",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test:currency": "brittle test/currency.test.js"
+  },
+  "author": "rbndg",
+  "license": "MIT"
+}
