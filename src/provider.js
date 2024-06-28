@@ -1,13 +1,37 @@
 const { Web3 } = require('web3')
 
-async function provider(uri) {
-  const web3 = new Web3(uri)
+class Provider {
+  constructor (config) {
+    this.web3 = new Web3(config.web3)
+    this.indexerUri = config.indexer
+  }
 
-  const block = await web3.eth.getBlockNumber()
+  async _callServer (method, param, path) {
+    const response = await fetch(this.indexerUri + (path || 'jsonrpc'), {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method,
+        param,
+        id: (Math.random() * 10e10).toFixed(0)
+      })
+    })
+    return response.json()
+  }
 
-  if(typeof block !== 'bigint' || block < BigInt(0)) throw new Error('Provider is invalid')
+  async init () {
+    const ethChainId = await this.web3.eth.getChainId()
 
-  return web3
+    const status = await this._callServer('status', [])
+    if (status.result.meta.chainId.toString() !== ethChainId.toString()) throw new Error('indexer and web3 chain id mismatch')
+  }
+
+  async getTransactionsByAddress (query) {
+    const data = await this._callServer('getTransactionsByAddress', [query])
+    if(data.error) throw new Error(data.error)
+    return data.result
+  }
 }
 
-module.exports = provider
+module.exports = Provider

@@ -2,23 +2,22 @@ const test = require('brittle')
 const assert = require('assert')
 const Eth = require('../src/eth.currency.js')
 
-
-test('Currency: Eth', async (t) => {
+test('Currency: Eth', async () => {
   test('Units', async (t) => {
     const eth = new Eth(1, 'main')
     t.ok(eth.name === 'ETH', 'currency name is ETH')
     t.ok(eth.base_name === 'WEI', 'currency name is WEI')
 
     const base = eth.toBaseUnit()
-    t.ok(1000000000000000000 === +base, 'toBaseUnit is correct')
-    t.ok(1 === +eth.toMainUnit(base), 'toMainUnit is correct')
+    t.ok(base === '1000000000000000000', 'toBaseUnit is correct')
+    t.ok(+eth.toMainUnit(base) === 1, 'toMainUnit is correct')
   })
 
   test('isUnitOf', async (t) => {
     const eth = new Eth(1, 'main')
     try {
       eth.isUnitOf('SATS')
-    } catch(err) {
+    } catch (err) {
       t.ok(err.message === 'Amount must be an instance of Ethereum', 'isUnitOf is implemented')
     }
   })
@@ -30,7 +29,7 @@ test('Currency: Eth', async (t) => {
     const v3 = v2.add(new Eth(1, 'base'))
     t.ok(+v3.toMainUnit() === 2.000000000000000001, 'add: 2 + 1.00000001 =  2.000000000000000001')
   })
-  
+
   test('Math: minus', async (t) => {
     const v = new Eth(2, 'main')
     const v2 = v.minus(v)
@@ -59,5 +58,4 @@ test('Currency: Eth', async (t) => {
     t.ok(btc2.eq(btc1), '2 == 2')
     t.ok(btc2.eq(new Eth(3, 'main')) === false, ' 2 != 3')
   })
-
 })

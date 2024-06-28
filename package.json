@@ -7,6 +7,7 @@
     "test": "test"
   },
   "scripts": {
+    "lint": "standard --fix",
     "test:currency": "brittle test/currency.test.js",
     "test:pay": "brittle test/wallet-pay-eth.test.js"
   },
@@ -16,5 +17,9 @@
     "@ethereumjs/wallet": "^2.0.3",
     "wallet-seed-bip39": "github:rbndg/lib-wallet-seed-bip39",
     "web3": "^4.10.0"
+  },
+  "devDependencies": {
+    "brittle": "^3.5.2",
+    "standard": "^17.1.0"
   }
 }

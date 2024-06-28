@@ -1,54 +1,54 @@
-
 const { Currency } = require('lib-wallet')
+const { Web3 } = require('web3')
+const util = Web3.utils
 
 const BN = Currency._BN
 
 class Ethereum extends Currency {
-
-  constructor(){ 
+  constructor () {
     super(...arguments)
-    const { amount, type, config } = this._parseConstArg(arguments)
+    this._parseConstArg(arguments)
     this.name = 'ETH'
     this.base_name = 'WEI'
     this.decimal_places = 18
   }
 
-  toBaseUnit() {
-    if(this.type === "base") return this.amount.toString()
+  toBaseUnit () {
+    if (this.type === 'base') return this.amount.toString()
     return Ethereum.toBaseUnit(this.amount, this.decimal_places)
   }
 
-  toMainUnit() {
-    if(this.type === "main") return this.amount.toString()
+  toMainUnit () {
+    if (this.type === 'main') return this.amount.toString()
     return Ethereum.toMainUnit(this.amount, this.decimal_places)
   }
 
-  static toBaseUnit(amount, decimal) {
-    return BN(amount).shiftedBy(decimal).toString()
+  static toBaseUnit (amount, decimals) {
+    return util.toWei(amount, 'ether')
   }
 
-  static toMainUnit(amount, decimal) {
-    return BN(amount).shiftedBy(decimal * -1).dp(decimal).toString()
+  static toMainUnit (amount) {
+    return util.fromWei(amount, 'ether')
   }
 
-  toString() {
+  toString () {
     return this.amount.toString()
   }
 
-  toNumber() {
-    return +this.amount
+  toNumber () {
+    return BN(this.amount).toNumber()
   }
 
-  isEthereum(v) {
-    if(!(v instanceof Ethereum)) throw new Error("Amount must be an instance of Ethereum")
+  isEthereum (v) {
+    if (!(v instanceof Ethereum)) throw new Error('Amount must be an instance of Ethereum')
   }
 
-  isUnitOf(amount) {
+  isUnitOf (amount) {
     this.isEthereum(amount)
   }
-  
-  bn(unit) {
-    if(unit === 'base') return new BN(this.toBaseUnit())
+
+  bn (unit) {
+    if (unit === 'base') return new BN(this.toBaseUnit())
     return new BN(this.toMainUnit())
   }
 }
