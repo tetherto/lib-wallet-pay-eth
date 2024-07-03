@@ -6,6 +6,8 @@ const BIP39Seed = require('wallet-seed-bip39')
 const Provider = require('../src/provider.js')
 const TestNode = require('../../wallet-test-tools/src/eth/index.js')
 const Ethereum = require('../src/eth.currency.js')
+const USDT = require('../src/usdt.currency.js')
+const ERC20 = require('../src/erc20.js')
 
 async function activeWallet (opts = {}) {
   const provider = new Provider({
@@ -20,7 +22,12 @@ async function activeWallet (opts = {}) {
       seed: opts.newWallet ? await BIP39Seed.generate() : await BIP39Seed.generate('taxi carbon sister jeans notice combine once carpet know dice oil solar')
     }),
     store: new WalletStoreHyperbee(),
-    network: 'regtest'
+    network: 'regtest',
+    token : [
+      new ERC20({
+        currency : USDT
+      })
+    ]
   })
   await eth.initialize({})
   return eth
@@ -112,7 +119,7 @@ test('syncTransactions new wallet', async function (t) {
 })
 
 
-solo('sendTransaction',async  (t) => {
+test('sendTransaction',async  (t) => {
   const node = await getTestnode()
   const eth = await activeWallet({ newWallet: false })
   const nodeAddr = await node.getNewAddress()
@@ -126,9 +133,9 @@ solo('sendTransaction',async  (t) => {
   })
 
   let bcast = false
-res.broadcasted((tx) => {
-    t.ok(true, 'tx broadcasted')
-    t.ok(tx.to === 'nodeAddr', 'recipient is correct')
+  res.broadcasted((tx) => {
+    t.ok(tx.to.toString().toLowerCase()  === nodeAddr.toLowerCase(), 'recipient is correct')
+    //TODO: Fetch tx from servers and compare values with sent values
     bcast = true
   })
 
@@ -137,4 +144,28 @@ res.broadcasted((tx) => {
   t.ok(tx.latestBlockHash, 'tx has block hash')
   if(!bcast) throw new Error('broadcast call back not called')
   await eth.destroy()
+})
+
+
+solo('ERC20', ({ test }) => {
+
+  solo('send token to addr', async (t) => {
+    const eth = await activeWallet({ newWallet: true })
+    const node = await getTestnode()
+    const sendAmount = BigInt(Math.floor(Math.random() * (20 - 2 + 1) + 2))
+    const addr = await eth.getNewAddress()
+    t.comment(`Sending: ${sendAmount} tokens  to ${addr.address}`)
+    const sendTokens = await node.sendToken({
+      address: addr.address,
+      amount: sendAmount
+    })
+    
+    const balance = await  eth.getBalance({ token : USDT.name }, addr.address)
+    t.ok(balance === sendAmount, 'balance matches send amount')
+
+    await eth.destroy()
+
+  })
+  
+
 })

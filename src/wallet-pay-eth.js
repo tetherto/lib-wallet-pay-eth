@@ -1,5 +1,4 @@
 const { WalletPay, HdWallet } = require('lib-wallet')
-const SyncManager = require('./sync-manager.js')
 const Ethereum = require('./eth.currency')
 
 class Balance {
@@ -54,7 +53,6 @@ class Balances {
       } 
     }
     return null
-
   }
 }
 
@@ -79,7 +77,7 @@ class StateDb {
     return new Balances(bal, this)
   }
 
-  async getAddresses(addr) {
+  async getAddresses() {
     const res = await this.store.get('addresses')
     if(!res)  return []
     return res
@@ -96,7 +94,7 @@ class StateDb {
     return this.store.put('addresses', addr)
   }
 
-  getTxIndex(i) {
+  getTxIndex() {
     return this._txIndex || this.store.get('tx_index')
   }
 
@@ -131,10 +129,6 @@ class StateDb {
   }
 }
 
-// TODO:
-// 3. send tx
-// 5. fee estimator
-
 class WalletPayEthereum extends WalletPay {
   constructor (config) {
     super(config)
@@ -143,7 +137,7 @@ class WalletPayEthereum extends WalletPay {
     this.web3 = config.provider.web3
   }
 
-  async initialize (args) {
+  async initialize () {
     this.ready = true
     // cointype and purpose : https://github.com/satoshilabs/slips/blob/master/slip-0044.md
     this._hdWallet = new HdWallet({
@@ -155,12 +149,9 @@ class WalletPayEthereum extends WalletPay {
       store: this.store.newInstance({ name: 'state-eth' })
     })
 
-    this._syncManager = new SyncManager({
-      state: this.state
-    })
-
     await this.state.init()
     await this._hdWallet.init()
+    await this._initTokens(this)
   }
 
   async destroy () {
@@ -168,6 +159,7 @@ class WalletPayEthereum extends WalletPay {
   }
 
   async pauseSync () {
+    //TODO: test for this
     this._halt = true
   }
 
@@ -175,6 +167,10 @@ class WalletPayEthereum extends WalletPay {
     this._halt = true
   }
 
+  /**
+   * @description get a new ETH account address
+   * return {Promise<object>} Address object
+  */
   async getNewAddress () {
     let path = await this._hdWallet.getLastExtPath()
     const addr = this.keyManager.addrFromPath(path)
@@ -196,7 +192,14 @@ class WalletPayEthereum extends WalletPay {
     }
   }
 
+  /**
+  * @desc Get balance of entire wallet or 1 address
+  * @param {object} opts options
+  * @param {string} addr Pass address to get balance of specific address
+  * @returns {Promise<Balance>}
+  */
   async getBalance (opts, addr) {
+    if(opts.token) return this.callToken('getBalance',opts.token, [opts ,addr])
     if (!addr) {
       const balances = await this.state.getBalances()
       return new Balance(balances.getTotal())
@@ -215,6 +218,15 @@ class WalletPayEthereum extends WalletPay {
     }
   }
 
+  /**
+  * @desc Crawl HD wallet path and collect transactions and calculate
+  * balance of all addresses.
+  * @param {object} opts 
+  * @param {object.restart} opts.restart Reset all state and resync
+  * @fires sync-path when a hd path is synced
+  * @fires sync-end when entire HD path has been traversed, or when syncing is halted
+  * @return {Promise}
+  */
   async syncTransactions (opts) {
     if (opts?.restart) {
       await this._hdWallet.resetSyncState()
@@ -224,6 +236,7 @@ class WalletPayEthereum extends WalletPay {
     const balances = await state.getBalances()
     const addrs = await state.getAddresses()
     this._syncCache = new Map()
+    //TODO: FIX PARSING FOR BIP44 
     await _hdWallet.eachAccount(async (syncState, signal) => {
       if (this._halt) return signal.stop
       const path = syncState.path
@@ -279,6 +292,19 @@ class WalletPayEthereum extends WalletPay {
     return { signed, sender,tx }
   }
 
+  /**
+  * @description Send ETH to address 
+  * @param {object} opts options 
+  * @param {object} outgoing outgoing options 
+  * @param {number} outgoing.amount Number of units being sent
+  * @param {string} outgoing.unit unit of amount. main or base 
+  * @param {string} outgoing.address address of reciever
+  * @param {string=} outgoing.sender address of sender
+  * @param {number=} outgoing.gasLimit ETH gas limit
+  * @param {number=} outgoing.gasPrice ETH gas price
+  * @return {function} promise.broadcasted function called when
+  * @return {Promise} Promise - when tx is confirmed
+  */
   sendTransaction (opts, outgoing) {
     const { web3 } = this.provider
     let notify
@@ -298,6 +324,7 @@ class WalletPayEthereum extends WalletPay {
 
   async _getGasPrice() {
 
+    //TODO: Get gas price
     return 20
   }
 

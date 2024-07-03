@@ -23,8 +23,6 @@ class Provider {
   async init () {
     const ethChainId = await this.web3.eth.getChainId()
 
-    const status = await this._callServer('status', [])
-    if (status.result.meta.chainId.toString() !== ethChainId.toString()) throw new Error('indexer and web3 chain id mismatch')
   }
 
   async getTransactionsByAddress (query) {
