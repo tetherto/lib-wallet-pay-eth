@@ -7,7 +7,6 @@ const BN = Currency._BN
 class Ethereum extends Currency {
   constructor () {
     super(...arguments)
-    this._parseConstArg(arguments)
     this.name = 'ETH'
     this.base_name = 'WEI'
     this.decimal_places = 18
@@ -39,12 +38,13 @@ class Ethereum extends Currency {
     return BN(this.amount).toNumber()
   }
 
-  isEthereum (v) {
+  static isEthereum (v) {
     if (!(v instanceof Ethereum)) throw new Error('Amount must be an instance of Ethereum')
+    return true
   }
 
   isUnitOf (amount) {
-    this.isEthereum(amount)
+    Ethereum.isEthereum(amount)
   }
 
   bn (unit) {

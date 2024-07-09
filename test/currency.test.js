@@ -59,3 +59,5 @@ test('Currency: Eth', async () => {
     t.ok(btc2.eq(new Eth(3, 'main')) === false, ' 2 != 3')
   })
 })
+
+//TODO: ERC20 currency test 

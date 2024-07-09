@@ -22,7 +22,10 @@ class Provider {
 
   async init () {
     const ethChainId = await this.web3.eth.getChainId()
+    //TODO: Check that indexer and eth are on same chains
+  }
 
+  async stop() {
   }
 
   async getTransactionsByAddress (query) {
