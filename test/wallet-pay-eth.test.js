@@ -42,7 +42,7 @@ async function getTestnode () {
 const USDT = currencyFac({
   name : 'USDT',
   base_name: 'USDT',
-  contractAddress : '0xf4B146FbA71F41E0592668ffbF264F1D186b2Ca8',
+  contractAddress : '0x5FbDB2315678afecb367f032d93F642f64180aa3',
   decimal_places: 6
 })
 
@@ -155,30 +155,57 @@ test('sendTransaction',async  (t) => {
   await eth.destroy()
 })
 
+test('getActiveAddresses',async (t) => {
 
-solo('ERC20', ({ test }) => {
+  const eth = await activeWallet({ newWallet: true })
+  const node = await getTestnode()
+  const sends = [
+    [ await eth.getNewAddress(), 1.1 ],
+    [ await eth.getNewAddress(), 1.5 ],
+  ]
+  for ( let s in sends) {
+    const [addr, amount ] = sends[s]
+    await node.sendToAddress({ amount, address: addr.address  })
+  }
+  await eth.syncTransactions()
+  const addrs = await eth.getActiveAddresses()
+  let x = 0
+  for( let [addr, bal] of addrs ) {
+    const [sendAddr, amt] = sends[x]
+    t.ok(addr === sendAddr.address,`Address index ${x} matches` )
+    t.ok(bal.toMainUnit() === amt.toString(), `Amount index ${x} matches`)
+    x++
+  }
+  t.ok(x == sends.length, 'all addresses found' )
+});
 
-  solo('getBalance', async (t) => {
+
+(() => {
+  const tkopts = { token : USDT.name }
+
+  const skip = false 
+  test('ERC20: getBalance',{ skip  },  async (t) => {
     const eth = await activeWallet({ newWallet: true })
     const node = await getTestnode()
     const sendAmount = BigInt(Math.floor(Math.random() * (20 - 2 + 1) + 2))
     const addr = await eth.getNewAddress()
     t.ok(addr.address, 'can generate address')
 
-    let balance = await  eth.getBalance({ token : USDT.name }, addr.address)
-    t.ok(balance === 0n, 'token balance is zero')
+    let balance = await  eth.getBalance(tkopts, addr.address)
+    t.ok(balance.confirmed.toMainUnit() === '0', 'token balance is zero')
     t.comment(`Sending: ${sendAmount} tokens  to ${addr.address}`)
-    const sendTokens = await node.sendToken({
+    await node.sendToken({
       address: addr.address,
       amount: sendAmount
     })
-    
-    balance = await  eth.getBalance({ token : USDT.name }, addr.address)
-    t.ok(balance === sendAmount, 'balance matches send amount')
+
+    await eth.syncTransactions(tkopts)
+    balance = await  eth.getBalance(tkopts, addr.address)
+    t.ok(balance.confirmed.toMainUnit() === sendAmount.toString(), 'balance matches send amount')
     await eth.destroy()
   })
 
-  solo('syncTransactions', async (t) => {
+  test('ERC20: syncTransactions', { skip },async (t) => {
     const eth = await activeWallet({ newWallet: true })
     const node = await getTestnode()
     const sendAmount = BigInt(Math.floor(Math.random() * (20 - 2 + 1) + 2))
@@ -195,16 +222,15 @@ solo('ERC20', ({ test }) => {
       address: addr.address,
       amount: amt2
     })
-    
 
-    
-    await eth.syncTransactions({ token : USDT.name })
+
+    await eth.syncTransactions(tkopts)
     const t0 = t.test('getTransactions')
 
     let amts  = [sendAmount, amt2]
     let lastBlock
-    await eth.getTransactions({ token : USDT.name },(block)=>{
-      t0.ok(block.length === 1, `Get block tx length 1`)
+    await eth.getTransactions(tkopts,(block)=>{
+      t0.ok(block.length === 1, `block tx length 1`)
       const tx = block.pop()
       if(lastBlock) {
         t.ok(tx.height > lastBlock, 'block number increasing')
@@ -217,7 +243,62 @@ solo('ERC20', ({ test }) => {
     t0.end()
     await eth.destroy()
   })
-  
-  
 
-})
+  test('ERC20: getActiveAddresses',{ skip },async (t) => {
+
+    const eth = await activeWallet({ newWallet: true })
+    const node = await getTestnode()
+    const sends = [
+      [ await eth.getNewAddress(), 10 ],
+      [ await eth.getNewAddress(), 12 ],
+    ]
+    for ( let s in sends) {
+      const [addr, amount ] = sends[s]
+      await node.sendToken({ amount, address: addr.address  })
+    }
+    await eth.syncTransactions(tkopts)
+    const addrs = await eth.getActiveAddresses(tkopts)
+    let x = 0
+    for( let [addr, bal] of addrs ) {
+      const [sendAddr, amt] = sends[x]
+      t.ok(addr === sendAddr.address,`Address index ${x} matches` )
+      t.ok(bal.toMainUnit() === amt.toString(), `Amount index ${x} matches`)
+      x++
+    }
+    t.ok(x == sends.length, 'all addresses found' )
+  })
+
+  solo('ERC20: sendTransactions',{ skip }, async (t) => {
+    const eth = await activeWallet({ newWallet: true })
+    const node = await getTestnode()
+    const nodeAddr = await node.getNewAddress()
+    const sends = [
+      [ await eth.getNewAddress(), 10 ],
+      [ await eth.getNewAddress(), 12 ],
+    ]
+    for ( let s in sends) {
+      const [addr, amount ] = sends[s]
+      await node.sendToAddress({amount: 1, address: addr.address})
+      await node.sendToken({ amount, address: addr.address  })
+    }
+    await eth.syncTransactions()
+    await eth.syncTransactions(tkopts)
+    const addrs  = await eth.getFundedTokenAddresses(tkopts)
+    let x = 0
+    for( let [addr, bal] of addrs ) {
+      const [tbal] = bal 
+      const send = await eth.sendTransaction(tkopts, {
+        sender: addr,
+        amount: tbal.toMainUnit(),
+        unit: 'main',
+        address: nodeAddr
+      })
+      const newBal = await eth.getBalance(tkopts, addr) 
+      t.ok(newBal.confirmed.toBaseUnit() === '0', 'token balance is zero after sending')
+      x++
+    }
+    t.ok(x == sends.length, 'all addresses found' )
+    await eth.destroy()
+  })
+
+})();

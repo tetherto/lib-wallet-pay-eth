@@ -47,6 +47,10 @@ class Balances {
     }
     return null
   }
+
+  async getAll(){
+    return this.value
+  }
 }
 
 
@@ -76,7 +80,9 @@ class StateDb {
 
   async getAddress(address) {
     const list = await this._hdWallet.getAllAddress()
+    console.log(list)
     return list.find((addr) =>{
+      console.log(addr)
       return addr.address === address
     })
   }
@@ -114,6 +120,7 @@ class StateDb {
   reset() {
     return this.store.clear()
   }
+
 }
 
 module.exports = StateDb

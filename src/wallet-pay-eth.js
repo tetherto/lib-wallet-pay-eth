@@ -11,7 +11,7 @@ class WalletPayEthereum extends WalletPay {
     this.web3 = config.provider.web3
     this._setCurrency(Ethereum)
   }
-
+  
   async initialize () {
     this.ready = true
     // cointype and purpose : https://github.com/satoshilabs/slips/blob/master/slip-0044.md
@@ -43,7 +43,7 @@ class WalletPayEthereum extends WalletPay {
   }
 
   async resumeSync () {
-    this._halt = true
+    this._halt = false
   }
 
 
@@ -60,11 +60,8 @@ class WalletPayEthereum extends WalletPay {
 
   
   async getTransactions (opts, fn) {
-    let state = this.state
+    const state = await this._getState(opts)
 
-    if(opts.token) {
-      state  = await this.callToken('getState', opts.token, [])
-    } 
     const txIndex = await state.getTxIndex()
 
     if(!txIndex || !txIndex.earliest) return 
@@ -93,6 +90,59 @@ class WalletPayEthereum extends WalletPay {
     return new this._Balance(new Ethereum(bal, 'base'))
   }
 
+  async _getState(opts={}) {
+    let state = this.state
+    if(opts.token) {
+      state  = await this.callToken('getState', opts.token, [])
+    } 
+    return state
+
+  }
+
+  async getActiveAddresses(opts) {
+    const state = await this._getState(opts)
+    const bal = await state.getBalances()
+    return bal.getAll()
+  }
+
+  async getFundedTokenAddresses(opts){
+    const token = await this.getActiveAddresses(opts)
+    const eth = await this.getActiveAddresses()
+    const accounts = new Map()
+    for(const [addr, bal] of token) {
+      const ethBal = eth.get(addr)
+      if(!ethBal || ethBal.toNumber() <= 0) continue
+      accounts.set(addr, [bal, ethBal])
+    }
+    return accounts
+  }
+
+  async _syncEthPath(addr, signal) {
+    const provider = this.provider
+    const path = addr.path
+    const balances = await this.state.getBalances()
+    const tx = await provider.getTransactionsByAddress({ address: addr.address })
+    if (tx.length === 0 ) {
+      this.emit('synced-path', path)
+      return signal.noTx
+    }
+    const bal = await this.getBalance({}, addr.address)
+    await balances.add(addr.address, bal.confirmed)
+    this._hdWallet.addAddress(addr)
+    for (const t of tx ) {
+      await this.state.storeTxHistory({
+        from: tx.from,
+        to: tx.to,
+        value: new Ethereum(t.value, 'base'),
+        height: t.blockNumber,
+        txid: t.hash,
+        gas: t.gas,
+        gasPrice: t.gasPrice
+      })
+    }
+    return tx.length > 0 ? signal.hasTx : signal.noTx
+  }
+
   /**
   * @desc Crawl HD wallet path and collect transactions and calculate
   * balance of all addresses.
@@ -103,39 +153,24 @@ class WalletPayEthereum extends WalletPay {
   * @return {Promise}
   */
   async syncTransactions (opts = {}) {
-    if (opts?.restart) {
-      await this._hdWallet.resetSyncState()
-      await this.state.reset()
-    }
-    const { provider, keyManager, state, _hdWallet } = this
-    const balances = await state.getBalances()
-    await _hdWallet.eachAccount(async (syncState, signal) => {
-      if (this._halt) return signal.stop
+    let { keyManager, state } = this
 
-      const path = syncState.path
-      const { addr } = keyManager.addrFromPath(path)
-      if(opts.token) return this.callToken('syncPath', opts.token, [addr, syncState, signal])
-      const tx = await provider.getTransactionsByAddress({ address: addr.address })
-      if (tx.length === 0 ) {
-        this.emit('synced-path', path)
-        return signal.noTx
-      }
-      const bal = await this.getBalance({}, addr.address)
-      await balances.add(addr.address, bal.confirmed)
-      this._hdWallet.addAddress(addr)
-      for (const t of tx ) {
-        await this.state.storeTxHistory({
-          from: tx.from,
-          to: tx.to,
-          value: new Ethereum(t.value, 'base'),
-          height: t.blockNumber,
-          txid: t.hash,
-          gas: t.gas,
-          gasPrice: t.gasPrice
-        })
-      }
-      this.emit('synced-path', path)
-      return tx.length > 0 ? signal.hasTx : signal.noTx
+    if(opts.token) {
+      state  = await this.callToken('getState', opts.token, [])
+    } 
+
+    if (opts?.restart) {
+      await state._hdWallet.resetSyncState()
+      await state.reset()
+    }
+
+    await state._hdWallet.eachAccount(async (syncState, signal) => {
+      if (this._halt) return signal.stop
+      const { addr } = keyManager.addrFromPath(syncState.path)
+      if(opts.token) return this.callToken('syncPath', opts.token, [addr, signal])
+      const res = await this._syncEthPath(addr, signal)
+      this.emit('synced-path', syncState.path)
+      return res 
     })
 
     if (this._halt) {
@@ -185,12 +220,13 @@ class WalletPayEthereum extends WalletPay {
   * @param {string=} outgoing.sender address of sender
   * @param {number=} outgoing.gasLimit ETH gas limit
   * @param {number=} outgoing.gasPrice ETH gas price
-  * @return {function} promise.broadcasted function called when
   * @return {Promise} Promise - when tx is confirmed
   */
   sendTransaction (opts, outgoing) {
     const { web3 } = this.provider
+    if(opts.token) return this.callToken('sendTransactions', opts.token, [opts, outgoing])
     let notify
+
     const p = new Promise((resolve, reject)=>{
       this._getSignedTx(outgoing).then(({ signed }) => {
         web3.eth.sendSignedTransaction(signed.rawTransaction)
