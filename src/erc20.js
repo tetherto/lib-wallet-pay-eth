@@ -108,8 +108,7 @@ class ERC20 extends EventEmitter {
     const p = new Promise(async (resolve, reject) => {
       web3.eth.sendSignedTransaction(signedTx.rawTransaction)
         .on('receipt', (d) => {
-          if(notify) return notify(d)
-        .once('confirmation', (tx) => resolve(tx))
+          resolve(d)
         }).on('error', reject )
     })
     p.broadcasted = (fn) => notify = fn
@@ -122,7 +121,7 @@ class ERC20 extends EventEmitter {
   }
 
   async _getGasPrice() {
-    return 100533
+    return 346409989
   }
 }
 

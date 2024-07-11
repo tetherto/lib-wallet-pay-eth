@@ -268,7 +268,7 @@ test('getActiveAddresses',async (t) => {
     t.ok(x == sends.length, 'all addresses found' )
   })
 
-  solo('ERC20: sendTransactions',{ skip }, async (t) => {
+  test('ERC20: sendTransactions',{ skip }, async (t) => {
     const eth = await activeWallet({ newWallet: true })
     const node = await getTestnode()
     const nodeAddr = await node.getNewAddress()
@@ -287,14 +287,14 @@ test('getActiveAddresses',async (t) => {
     let x = 0
     for( let [addr, bal] of addrs ) {
       const [tbal] = bal 
-      const send = await eth.sendTransaction(tkopts, {
+      await eth.sendTransaction(tkopts, {
         sender: addr,
         amount: tbal.toMainUnit(),
         unit: 'main',
         address: nodeAddr
       })
       const newBal = await eth.getBalance(tkopts, addr) 
-      t.ok(newBal.confirmed.toBaseUnit() === '0', 'token balance is zero after sending')
+      t.ok(newBal.confirmed.toBaseUnit() === '0', `token account #${x} balance is zero after sending all`)
       x++
     }
     t.ok(x == sends.length, 'all addresses found' )

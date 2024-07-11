@@ -220,6 +220,7 @@ class WalletPayEthereum extends WalletPay {
   * @param {string=} outgoing.sender address of sender
   * @param {number=} outgoing.gasLimit ETH gas limit
   * @param {number=} outgoing.gasPrice ETH gas price
+  * @return {function} promise.broadcasted function called when
   * @return {Promise} Promise - when tx is confirmed
   */
   sendTransaction (opts, outgoing) {
