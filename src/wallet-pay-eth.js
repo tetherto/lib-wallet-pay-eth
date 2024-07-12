@@ -12,8 +12,13 @@ class WalletPayEthereum extends WalletPay {
     this._setCurrency(Ethereum)
   }
   
-  async initialize () {
-    this.ready = true
+  async initialize (ctx) {
+    // @desc use default key manager
+    if (!this.keyManager) {
+      this.keyManager = new (require('./wallet-key-eth.js'))({ network: this.network })
+    }
+
+    await super.initialize(ctx)
     // cointype and purpose : https://github.com/satoshilabs/slips/blob/master/slip-0044.md
     this._hdWallet = new HdWallet({
       store: this.store.newInstance({ name: 'hdwallet-eth' }),
@@ -29,6 +34,7 @@ class WalletPayEthereum extends WalletPay {
     await this.state.init()
     await this._hdWallet.init()
     await this._initTokens(this)
+    this.ready = true
   }
 
   async destroy () {
@@ -70,6 +76,7 @@ class WalletPayEthereum extends WalletPay {
 
     for(let x = txIndex.earliest; x <= txIndex.latest; x++) {
       const block = await state.getTxHistory(x)
+      if(!block || block.length === 0 ) continue
       await fn(block)
     }
   }
@@ -106,13 +113,17 @@ class WalletPayEthereum extends WalletPay {
   }
 
   async getFundedTokenAddresses(opts){
+    if(!opts.token) {
+      return this.getActiveAddresses()
+    }
     const token = await this.getActiveAddresses(opts)
     const eth = await this.getActiveAddresses()
     const accounts = new Map()
     for(const [addr, bal] of token) {
       const ethBal = eth.get(addr)
-      if(!ethBal || ethBal.toNumber() <= 0) continue
-      accounts.set(addr, [bal, ethBal])
+      const data = [bal]
+      if(ethBal &&  ethBal.toNumber() > 0) data.push(ethBal)
+      accounts.set(addr, data)
     }
     return accounts
   }
@@ -127,7 +138,7 @@ class WalletPayEthereum extends WalletPay {
       return signal.noTx
     }
     const bal = await this.getBalance({}, addr.address)
-    await balances.add(addr.address, bal.confirmed)
+    await balances.setBal(addr.address, bal.confirmed)
     this._hdWallet.addAddress(addr)
     for (const t of tx ) {
       await this.state.storeTxHistory({
@@ -159,7 +170,7 @@ class WalletPayEthereum extends WalletPay {
       state  = await this.callToken('getState', opts.token, [])
     } 
 
-    if (opts?.restart) {
+    if (opts?.reset) {
       await state._hdWallet.resetSyncState()
       await state.reset()
     }

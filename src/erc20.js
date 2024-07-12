@@ -41,6 +41,12 @@ class ERC20 extends EventEmitter {
     this._contract = new web3.eth.Contract(ABI, address)
   }
 
+  getTokenInfo(){
+    return {
+      contractAddress: this._contract._address
+    }
+  }
+
   async getBalance(opts, addr){
     //todo: get state balance or get single address balance
     const bal = await this._contract.methods.balanceOf(addr).call()
@@ -74,7 +80,7 @@ class ERC20 extends EventEmitter {
     }
     const balances = await this.state.getBalances()
     const bal = await this.getBalance({}, addr.address)
-    await balances.add(addr.address, bal.confirmed)
+    await balances.setBal(addr.address, bal.confirmed)
     await this._hdWallet.addAddress(addr)
     return signal.hasTx 
   }
@@ -91,13 +97,9 @@ class ERC20 extends EventEmitter {
     }
     const abi = this._contract.methods.transfer(outgoing.address, amount.toMainUnit()).encodeABI()
     const tx = {
-      // this is the address responsible for this transaction
       from: sender.address,
-      // target address, this could be a smart contract address
       to: this._contract._address,
-      // gas fees for the transaction
       gas: 50000,
-      // this encodes the ABI of the method and the arguments
       data: abi,
       gas: outgoing.gasLimit ||  (await web3.eth.getBlock()).gasLimit,
       gasPrice: outgoing.gasPrice || await this._getGasPrice(),

@@ -25,6 +25,11 @@ class Balances {
     return balance
   }
 
+  async setBal(addr,balance) {
+    this.value.set(addr, balance)
+    await this.state.storeBalances(this)
+  }
+
   toJSON () {
     return Object.fromEntries(this.value)
   }
@@ -80,9 +85,7 @@ class StateDb {
 
   async getAddress(address) {
     const list = await this._hdWallet.getAllAddress()
-    console.log(list)
     return list.find((addr) =>{
-      console.log(addr)
       return addr.address === address
     })
   }
@@ -118,6 +121,8 @@ class StateDb {
   }
 
   reset() {
+    this._balances = null
+    this._txIndex = null
     return this.store.clear()
   }
 
