@@ -1,5 +1,4 @@
 const test = require('brittle')
-const assert = require('assert')
 const Eth = require('../src/eth.currency.js')
 
 test('Currency: Eth', async () => {
@@ -60,4 +59,4 @@ test('Currency: Eth', async () => {
   })
 })
 
-//TODO: ERC20 currency test 
+// TODO: ERC20 currency test

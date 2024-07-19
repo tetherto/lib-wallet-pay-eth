@@ -16,10 +16,12 @@
   "dependencies": {
     "@ethereumjs/wallet": "^2.0.3",
     "wallet-seed-bip39": "github:rbndg/lib-wallet-seed-bip39",
-    "web3": "^4.10.0"
+    "web3": "^4.10.0",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "brittle": "^3.5.2",
-    "standard": "^17.1.0"
+    "standard": "^17.1.0",
+    "wtfnode": "^0.9.3"
   }
 }

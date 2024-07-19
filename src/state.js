@@ -1,15 +1,14 @@
-
 class Balances {
   constructor (val, state) {
     this.state = state
     this.value = new Map()
-    for(let addr in val) {
-      const d  = val[addr]
+    for (const addr in val) {
+      const d = val[addr]
       this.value.set(addr, this._newCurrency(d))
     }
   }
-  
-  _newCurrency() {
+
+  _newCurrency () {
     return new this.state.Currency(...arguments)
   }
 
@@ -25,7 +24,7 @@ class Balances {
     return balance
   }
 
-  async setBal(addr,balance) {
+  async setBal (addr, balance) {
     this.value.set(addr, balance)
     await this.state.storeBalances(this)
   }
@@ -42,22 +41,21 @@ class Balances {
     return total
   }
 
-  async getAddrByBalance(amount){
-    for(const [addr, bal] of this.value) {
-      if(bal.gte(amount)) {
-        const addrObj  = await this.state._hdWallet.getAddress(addr)
-        if(!addrObj) throw new Error('Address missing from addr list')
+  async getAddrByBalance (amount) {
+    for (const [addr, bal] of this.value) {
+      if (bal.gte(amount)) {
+        const addrObj = await this.state._hdWallet.getAddress(addr)
+        if (!addrObj) throw new Error('Address missing from addr list')
         return addrObj
-      } 
+      }
     }
     return null
   }
 
-  async getAll(){
+  async getAll () {
     return this.value
   }
 }
-
 
 class StateDb {
   constructor (config) {
@@ -73,59 +71,60 @@ class StateDb {
   }
 
   storeBalances (balance) {
-    this._balances = balance 
+    this._balances = balance
     return this.store.put('current_balance', balance.toJSON())
   }
 
   async getBalances () {
-    if(this._balances) return this._balances
+    if (this._balances) return this._balances
     const bal = await this.store.get('current_balance')
     return new Balances(bal, this)
   }
 
-  async getAddress(address) {
+  async getAddress (address) {
     const list = await this._hdWallet.getAllAddress()
-    return list.find((addr) =>{
+    return list.find((addr) => {
       return addr.address === address
     })
   }
 
-  getTxIndex() {
+  getTxIndex () {
     return this._txIndex || this.store.get('tx_index')
   }
 
-  async updateTxIndex(i) {
+  async updateTxIndex (i) {
     let index = await this.getTxIndex()
-    if(!index) index = { earliest : i, latest: i}
-    else if(i < index.earliest) {
-      index.earliest = i 
-    } else if ( i > index.latest ) {
-      index.latest = i 
+    if (!index) index = { earliest: i, latest: i }
+    else if (i < index.earliest) {
+      index.earliest = i
+    } else if (i > index.latest) {
+      index.latest = i
     }
     this._txIndex = index
     return this.store.put('tx_index')
   }
 
-  async storeTxHistory(data) {
-    const i = data.height
-    await this.updateTxIndex(i)
+  async storeTxHistory (data) {
+    const i = Number(data.height)
     const blockTx = await this.getTxHistory(i)
+    const exists = blockTx.filter((tx) => tx.txid === data.txid).length > 0
+    if (exists) return
     blockTx.push(data)
-    return this.store.put('height:'+i, blockTx)
+    await this.updateTxIndex(i)
+    return this.store.put('height:' + i, blockTx)
   }
 
-  async getTxHistory(i) {
-    const res = await this.store.get('height:'+i)
-    if(!res) return []
-    return res 
+  async getTxHistory (i) {
+    const res = await this.store.get('height:' + i)
+    if (!res) return []
+    return res
   }
 
-  reset() {
+  reset () {
     this._balances = null
     this._txIndex = null
     return this.store.clear()
   }
-
 }
 
 module.exports = StateDb

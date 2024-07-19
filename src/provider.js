@@ -1,9 +1,13 @@
 const { Web3 } = require('web3')
+const { WebSocket } = require('ws')
+const { EventEmitter } = require('events')
 
-class Provider {
+class Provider extends EventEmitter {
   constructor (config) {
+    super()
     this.web3 = new Web3(config.web3)
     this.indexerUri = config.indexer
+    this.indexerws = config.indexerWs
   }
 
   async _callServer (method, param, path) {
@@ -21,17 +25,59 @@ class Provider {
   }
 
   async init () {
-    const ethChainId = await this.web3.eth.getChainId()
-    //TODO: Check that indexer and eth are on same chains
+    // TODO: check if everything is ok
+    await this._startWs()
   }
 
-  async stop() {
+  async stop () {
+    this._ws.terminate()
+    this.web3.currentProvider.disconnect()
+  }
+
+  async _startWs () {
+    const ws = new WebSocket(this.indexerws)
+    return new Promise((resolve) => {
+      ws.on('error', console.error)
+
+      ws.on('close', () => {
+        this.emit('close')
+      })
+
+      ws.on('open', () => {
+        resolve()
+      })
+
+      ws.on('message', (data) => {
+        let res
+        try {
+          res = JSON.parse(data.toString())
+        } catch (err) {
+          console.log('bad event from server, ignored', err)
+        }
+        const evname = res?.event
+        if (!evname) console.log('event has no name ignored ', res)
+        this.emit(evname, res.data)
+      })
+
+      this._ws = ws
+    })
   }
 
   async getTransactionsByAddress (query) {
     const data = await this._callServer('getTransactionsByAddress', [query])
-    if(data.error) throw new Error(data.error)
+    if (data.error) throw new Error(data.error)
     return data.result
+  }
+
+  _sendWs (data) {
+
+  }
+
+  async subscribeToAccount (addr) {
+    this._ws.send(JSON.stringify({
+      method: 'subscribeAccount',
+      params: [addr]
+    }))
   }
 }
 
