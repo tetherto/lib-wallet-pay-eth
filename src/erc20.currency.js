@@ -52,10 +52,11 @@ module.exports = function currencyFactory (opts) {
 
     isToken (v) {
       if (!(v instanceof ERC20)) throw new Error('must be an instance of ERC20')
+      return true
     }
 
     isUnitOf (amount) {
-      this.isToken(amount)
+      return this.isToken(amount)
     }
 
     bn (unit) {

@@ -31,19 +31,20 @@ class Provider extends EventEmitter {
 
   async stop () {
     this._ws.terminate()
-    this.web3.currentProvider.disconnect()
   }
 
   async _startWs () {
     const ws = new WebSocket(this.indexerws)
-    return new Promise((resolve) => {
-      ws.on('error', console.error)
+    return new Promise((resolve, reject) => {
+      ws.once('error', (err) => {
+        reject(new Error('failed to connected to indexer websocket: '+err.message))
+      })
 
-      ws.on('close', () => {
+      ws.once('close', () => {
         this.emit('close')
       })
 
-      ws.on('open', () => {
+      ws.once('open', () => {
         resolve()
       })
 
@@ -67,10 +68,6 @@ class Provider extends EventEmitter {
     const data = await this._callServer('getTransactionsByAddress', [query])
     if (data.error) throw new Error(data.error)
     return data.result
-  }
-
-  _sendWs (data) {
-
   }
 
   async subscribeToAccount (addr) {

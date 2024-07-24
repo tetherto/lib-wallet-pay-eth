@@ -38,7 +38,7 @@ class WalletPayEthereum extends WalletPay {
     this.ready = true
   }
 
-  async destroy () {
+  async _destroy () {
     this.ready = false
     await this.callToken('destroy', null, [])
     await this.provider.stop()
@@ -46,7 +46,6 @@ class WalletPayEthereum extends WalletPay {
   }
 
   async pauseSync () {
-    // TODO: test for this
     this._halt = true
   }
 
@@ -74,6 +73,12 @@ class WalletPayEthereum extends WalletPay {
     return res.addr
   }
 
+  /**
+   * @description Get wallet tx history
+   * @param {string?} opts.token name of token for token tx history
+   * @param {function} fn callback function for transactions
+   * @returns {Promise}
+   */
   async getTransactions (opts, fn) {
     const state = await this._getState(opts)
 
@@ -196,7 +201,7 @@ class WalletPayEthereum extends WalletPay {
       const { addr } = keyManager.addrFromPath(syncState.path)
       if (opts.token) return this.callToken('syncPath', opts.token, [addr, signal])
       const res = await this._syncEthPath(addr, signal)
-      this.emit('synced-path', syncState.path)
+      this.emit('synced-path',syncState._addrType,  syncState.path, res === signal.hasTx, syncState.toJSON())
       return res
     })
 
@@ -211,6 +216,16 @@ class WalletPayEthereum extends WalletPay {
     this.emit('sync-end')
   }
 
+  /**
+   * @description generate a signed tx for a payment
+   * @param {number} outgoing.amount amount of payment
+   * @param {string} outgoing.unit main or base 
+   * @param {string} outgoing.address address of recipient
+   * @param {string?} outgoing.sender address you are sending from
+   * @param {number?} outgoing.gasLimit gas limit 
+   * @param {gasPrice?} outgoing.gasPrice gas price
+   * @returns {object} signed, sender address, transaction object
+   */
   async _getSignedTx (outgoing) {
     const { web3 } = this.provider
     const amount = new Ethereum(outgoing.amount, outgoing.unit)

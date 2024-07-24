@@ -15,6 +15,7 @@ async function activeWallet (opts = {}) {
     indexer: 'http://127.0.0.1:8008/',
     indexerWs: 'http://127.0.0.1:8181/'
   })
+  
   await provider.init()
   const eth = new EthPay({
     asset_name: 'eth',
@@ -43,7 +44,7 @@ async function getTestnode () {
 const USDT = currencyFac({
   name: 'USDT',
   base_name: 'USDT',
-  contractAddress: '0x0165878A594ca255338adfa4d48449f69242Eb8F',
+  contractAddress: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
   decimal_places: 6
 })
 
@@ -70,7 +71,7 @@ test('Create an instances of WalletPayEth', async function (t) {
   await eth.destroy()
 })
 
-solo('getNewAddress', async function (t) {
+test('getNewAddress', async function (t) {
   const expect = {
     address: '0xb89c31da0a0d796240dc99e551287f16145ce7a3',
     publicKey: '0xe835543d53422a1289b494439760bc529f9baa34032b4b24530f5299fd1401dd93519953291a65838b2e8b69b22b28c0c56c76870ce72545f79a8042436ae033',
@@ -141,7 +142,7 @@ test('new wallet syncTransactions', async (t) => {
   await syncTest(t, true)
 })
 
-solo('new wallet, websocket tx detection', async (t) => {
+test('new wallet, websocket tx detection', async (t) => {
   await syncTest(t, false)
 })
 
@@ -283,7 +284,7 @@ test('getActiveAddresses', async (t) => {
     t.ok(x == sends.length, 'all addresses found')
   })
 
-  test('ERC20: sendTransactions', { skip }, async (t) => {
+  solo('ERC20: sendTransactions sweep all tokens', { skip }, async (t) => {
     const eth = await activeWallet({ newWallet: true })
     const node = await getTestnode()
     const nodeAddr = await node.getNewAddress()
@@ -293,6 +294,7 @@ test('getActiveAddresses', async (t) => {
     ]
     for (const s in sends) {
       const [addr, amount] = sends[s]
+      t.comment(`funding ${addr.address} - ${amount} tokens`)
       await node.sendToAddress({ amount: 1, address: addr.address })
       await node.sendToken({ amount, address: addr.address })
     }
@@ -309,7 +311,7 @@ test('getActiveAddresses', async (t) => {
         address: nodeAddr
       })
       const newBal = await eth.getBalance(tkopts, addr)
-      t.ok(newBal.confirmed.toBaseUnit() === '0', `token account #${x} balance is zero after sending all`)
+      t.ok(newBal.confirmed.toBaseUnit() === '0', `token account #${x} balance is zero after sending all of the amount`)
       x++
     }
     t.ok(x == sends.length, 'all addresses found')
