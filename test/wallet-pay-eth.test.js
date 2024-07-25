@@ -15,7 +15,7 @@ async function activeWallet (opts = {}) {
     indexer: 'http://127.0.0.1:8008/',
     indexerWs: 'http://127.0.0.1:8181/'
   })
-  
+
   await provider.init()
   const eth = new EthPay({
     asset_name: 'eth',
@@ -106,9 +106,9 @@ async function syncTest (t, sync) {
     await eth.syncTransactions()
   } else {
     t.comment('waiting for event')
-    await new Promise((res) => {
+    await new Promise((resolve) => {
       eth.on('new-tx', () => {
-        res()
+        resolve()
       })
     })
   }
@@ -194,7 +194,7 @@ test('getActiveAddresses', async (t) => {
     t.ok(bal.toMainUnit() === amt.toString(), `Amount index ${x} matches`)
     x++
   }
-  t.ok(x == sends.length, 'all addresses found')
+  t.ok(x === sends.length, 'all addresses found')
 });
 
 (() => {
@@ -280,7 +280,7 @@ test('getActiveAddresses', async (t) => {
       t.ok(bal.toMainUnit() === amt.toString(), `Amount index ${x} matches`)
       x++
     }
-    t.ok(x == sends.length, 'all addresses found')
+    t.ok(x === sends.length, 'all addresses found')
   })
 
   solo('ERC20: sendTransactions sweep all tokens', { skip }, async (t) => {
@@ -313,7 +313,7 @@ test('getActiveAddresses', async (t) => {
       t.ok(newBal.confirmed.toBaseUnit() === '0', `token account #${x} balance is zero after sending all of the amount`)
       x++
     }
-    t.ok(x == sends.length, 'all addresses found')
+    t.ok(x === sends.length, 'all addresses found')
     await eth.destroy()
   })
 })()

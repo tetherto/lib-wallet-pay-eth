@@ -37,7 +37,7 @@ class Provider extends EventEmitter {
     const ws = new WebSocket(this.indexerws)
     return new Promise((resolve, reject) => {
       ws.once('error', (err) => {
-        reject(new Error('failed to connected to indexer websocket: '+err.message))
+        reject(new Error('failed to connected to indexer websocket: ' + err.message))
       })
 
       ws.once('close', () => {

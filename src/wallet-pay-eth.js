@@ -202,7 +202,7 @@ class WalletPayEthereum extends WalletPay {
       const { addr } = keyManager.addrFromPath(syncState.path)
       if (opts.token) return this.callToken('syncPath', opts.token, [addr, signal])
       const res = await this._syncEthPath(addr, signal)
-      this.emit('synced-path',syncState._addrType,  syncState.path, res === signal.hasTx, syncState.toJSON())
+      this.emit('synced-path', syncState._addrType, syncState.path, res === signal.hasTx, syncState.toJSON())
       return res
     })
 
@@ -220,10 +220,10 @@ class WalletPayEthereum extends WalletPay {
   /**
    * @description generate a signed tx for a payment
    * @param {number} outgoing.amount amount of payment
-   * @param {string} outgoing.unit main or base 
+   * @param {string} outgoing.unit main or base
    * @param {string} outgoing.address address of recipient
    * @param {string?} outgoing.sender address you are sending from
-   * @param {number?} outgoing.gasLimit gas limit 
+   * @param {number?} outgoing.gasLimit gas limit
    * @param {gasPrice?} outgoing.gasPrice gas price
    * @returns {object} signed, sender address, transaction object
    */
