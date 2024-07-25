@@ -70,7 +70,6 @@ test('Create an instances of WalletPayEth', async function (t) {
   t.comment('destoying instance')
   await eth.destroy()
 })
-
 test('getNewAddress', async function (t) {
   const expect = {
     address: '0xb89c31da0a0d796240dc99e551287f16145ce7a3',

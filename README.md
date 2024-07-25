@@ -50,10 +50,6 @@ const ethPay = new EthereumPay({
     }),
     // Wallet store: Storage engine for the wallet
     store: storeEngine
-    // Network: network type, regtest, testnet, mainnet
-    network: 'regtest',
-    // Gap limit: Number of addresses to look ahead for transactions.
-    gap_limit: 20,
     // List of tokens that the wallet will support
     tokens : [
         new ERC20({

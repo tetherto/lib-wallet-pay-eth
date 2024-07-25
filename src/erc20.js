@@ -30,7 +30,7 @@ class ERC20 extends EventEmitter {
     this._setupContract()
   }
 
-  destroy () {
+  _destroy () {
   }
 
   _setupContract () {

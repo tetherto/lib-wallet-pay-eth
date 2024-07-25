@@ -40,7 +40,7 @@ class WalletPayEthereum extends WalletPay {
 
   async _destroy () {
     this.ready = false
-    await this.callToken('destroy', null, [])
+    await this.callToken('_destroy', null, [])
     await this.provider.stop()
     await this.store.close()
   }
@@ -97,6 +97,7 @@ class WalletPayEthereum extends WalletPay {
   /**
   * @desc Get balance of entire wallet or 1 address
   * @param {object} opts options
+  * @param {string} opts.token token name, for getting balance of token
   * @param {string} addr Pass address to get balance of specific address
   * @returns {Promise<Balance>}
   */
