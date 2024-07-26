@@ -53,11 +53,30 @@ class WalletPayEthereum extends WalletPay {
     this._halt = false
   }
 
+  _getTokenFromContract(addr){
+    const tokens = this.getTokens()
+  }
+
   _listenToEvents () {
     this.provider.on('subscribeAccount', async (res) => {
-      await this._storeTx(res.tx)
+      if(res.token) {
+        this._eachToken(async (token) => {
+          if(token.tokenContract.toLowerCase() !== res?.token.toLowerCase()) return 
+          const tx = await token.updateTxEvent(res)
+          this.emit('new-tx', { tx, token: token.name })
+        })
+
+        return 
+      }
+      const tx  = await this._storeTx(res.tx)
       await this._setAddrBalance(res.addr)
-      this.emit('new-tx', res.tx)
+      this.emit('new-tx',{ tx })
+    })
+  }
+
+  _onNewTx(){
+    return new Promise((resolve) => {
+      this.on('new-tx', resolve)
     })
   }
 
@@ -69,7 +88,10 @@ class WalletPayEthereum extends WalletPay {
     const res = await this._hdWallet.getNewAddress((path) => {
       return this.keyManager.addrFromPath(path)
     })
-    this.provider.subscribeToAccount(res.addr.address)
+    const tokenContracts = Array.from(this.getTokens()).map((t) => {
+      return t[1].tokenContract
+    })
+    this.provider.subscribeToAccount(res.addr.address,tokenContracts)
     return res.addr
   }
 
@@ -165,7 +187,7 @@ class WalletPayEthereum extends WalletPay {
   }
 
   _storeTx (tx) {
-    return this.state.storeTxHistory({
+    const data = {
       from: tx.from,
       to: tx.to,
       value: new Ethereum(tx.value, 'base'),
@@ -173,7 +195,9 @@ class WalletPayEthereum extends WalletPay {
       txid: tx.hash,
       gas: Number(tx.gas),
       gasPrice: Number(tx.gasPrice)
-    })
+    }
+    this.state.storeTxHistory(data)
+    return data
   }
 
   /**

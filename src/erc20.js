@@ -39,10 +39,23 @@ class ERC20 extends EventEmitter {
     this._contract = new web3.eth.Contract(ABI, address)
   }
 
-  getTokenInfo () {
-    return {
-      contractAddress: this._contract._address
-    }
+  /**
+  * @description Detected a new token transaction
+  **/
+  async updateTxEvent(res) {
+    if(!res?.tx?.height) return 
+    const { addr, tx } = res
+    tx.value = new this.Currency(tx.value, 'main')
+    await this.state.storeTxHistory(tx)
+    const balances = await this.state.getBalances()
+    const bal = await this.getBalance({}, res.addr)
+    await balances.setBal(addr.address, bal.confirmed)
+    await this._hdWallet.addAddress(addr)
+    return tx
+  }
+
+  get tokenContract () {
+    return this._contract._address
   }
 
   async getBalance (opts, addr) {

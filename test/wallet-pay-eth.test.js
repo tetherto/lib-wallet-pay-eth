@@ -260,6 +260,46 @@ test('getActiveAddresses', async (t) => {
     await eth.destroy()
   })
 
+  solo('ERC20: detect transactions', { skip }, async (t) => {
+    const eth = await activeWallet({ newWallet: true })
+    const node = await getTestnode()
+    const sendAmount = BigInt(Math.floor(Math.random() * (20 - 2 + 1) + 2))
+    const amt2 = 123
+    const addr = await eth.getNewAddress()
+    t.comment(`Sending: ${sendAmount} tokens  to ${addr.address}`)
+    await node.sendToken({
+      address: addr.address,
+      amount: sendAmount
+    })
+
+    t.comment(`Sending: ${amt2} tokens  to ${addr.address}`)
+    await node.sendToken({
+      address: addr.address,
+      amount: amt2
+    })
+    t.comment('waiting for tx detection')
+    await eth._onNewTx()
+
+
+    const t0 = t.test('getTransactions')
+
+    const amts = [sendAmount, amt2]
+    let lastBlock
+    await eth.getTransactions(tkopts, (block) => {
+      t0.ok(block.length === 1, 'block tx length 1')
+      const tx = block.pop()
+      if (lastBlock) {
+        t.ok(tx.height > lastBlock, 'block number increasing')
+      }
+      lastBlock = tx.height
+      const amt = amts.shift()
+      t0.ok(new USDT(tx.value).toBaseUnit() === new USDT(amt, 'main').toBaseUnit(), 'amount matches')
+    })
+    t.ok(amts.length === 0, 'all expected  transactions found')
+    t0.end()
+    await eth.destroy()
+  })
+
   test('ERC20: getActiveAddresses', { skip }, async (t) => {
     const eth = await activeWallet({ newWallet: true })
     const node = await getTestnode()
@@ -283,7 +323,7 @@ test('getActiveAddresses', async (t) => {
     t.ok(x === sends.length, 'all addresses found')
   })
 
-  solo('ERC20: sendTransactions sweep all tokens', { skip }, async (t) => {
+  test('ERC20: sendTransactions sweep all tokens', { skip }, async (t) => {
     const eth = await activeWallet({ newWallet: true })
     const node = await getTestnode()
     const nodeAddr = await node.getNewAddress()
