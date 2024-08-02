@@ -135,23 +135,3 @@ await btcPay.destroy()
 
 
 ```
-
-## Seashell CLI
-
-Seashell is a REPL Shell for testing and interacting with the wallet. You can create a new wallet, send transactions, get balances and addresses.
-To Access the seashell, run the following command:
-
-```bash
-node cli.js
-```
-
-To see all available commands, type `help` in the shell.
-
-```bash
-```bash
-## Testing
-
-- There is extensive integration tests for this package. 
-
-- We use Brittle for testing. Checkout package.json for various test commands.
-- Integration tests need a electrum server connected to a regtest bitcoin node.

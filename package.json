@@ -17,6 +17,7 @@
     "@ethereumjs/wallet": "^2.0.3",
     "wallet-seed-bip39": "github:rbndg/lib-wallet-seed-bip39",
     "web3": "^4.10.0",
+    "websocket": "^1.0.35",
     "ws": "^8.18.0"
   },
   "devDependencies": {

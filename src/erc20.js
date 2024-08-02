@@ -41,7 +41,7 @@ class ERC20 extends EventEmitter {
 
   /**
   * @description Detected a new token transaction
-  **/
+  * */
   async updateTxEvent(res) {
     if(!res?.tx?.height) return 
     const { addr, tx } = res
@@ -78,6 +78,9 @@ class ERC20 extends EventEmitter {
     })
   }
 
+  /**
+  * @description fetch tx history of an address and update balance
+  **/
   async syncPath (addr, signal) {
     const from = await this._getPastEvents({ _to: addr.address })
     const to = await this._getPastEvents({ _from: addr.address })
