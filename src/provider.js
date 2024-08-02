@@ -1,5 +1,5 @@
 const { Web3 } = require('web3')
-const  WebSocket = require('websocket').client
+const  WebSocket = require('websocket').w3cwebsocket
 const { EventEmitter } = require('events')
 
 class Provider extends EventEmitter {
@@ -36,35 +36,32 @@ class Provider extends EventEmitter {
   }
 
   async _startWs () {
-    const ws = new WebSocket()
     return new Promise((resolve, reject) => {
-      ws.once('error', (err) => {
+      const ws = new WebSocket(this.indexerws, 'echo-protocol')
+      ws.onerror = (err) => {
         reject(new Error('failed to connected to indexer websocket: ' + err.message))
-      })
+      }
 
-      ws.once('close', () => {
+      ws.onclose = () => {
         this.emit('close')
-      })
+      }
 
-      ws.once('connect', (conn) => {
+      ws.onopen = () => {
         resolve()
+      }
 
-        conn.on('message', (data) => {
-          let res
-          try {
-            res = JSON.parse(data.utf8Data.toString())
-          } catch (err) {
-            console.log('bad event from server, ignored', err)
-          }
-          const evname = res?.event
-          if (!evname) console.log('event has no name ignored ', res)
-          this.emit(evname, res.data)
-        })
-
-        this._ws = conn
-
-      })
-      ws.connect(this.indexerws)
+      ws.onmessage = (data) => {
+        let res
+        try {
+          res = JSON.parse(data?.data.toString())
+        } catch (err) {
+          console.log('bad event from server, ignored', err)
+        }
+        const evname = res?.event
+        if (!evname) console.log('event has no name ignored ', res)
+        this.emit(evname, res.data)
+      }
+      this._ws = ws
     })
   }
 
@@ -76,7 +73,7 @@ class Provider extends EventEmitter {
 
   async subscribeToAccount (addr, tokens) {
     this._subAccounts.push([addr,tokens])
-    this._ws.sendUTF(JSON.stringify({
+    this._ws.send(JSON.stringify({
       method: 'subscribeAccount',
       params: [addr, tokens]
     }))
