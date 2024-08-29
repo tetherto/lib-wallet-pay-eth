@@ -13,7 +13,7 @@ class Provider extends EventEmitter {
 
   async _callServer (method, param, path) {
     const response = await fetch(this.indexerUri + (path || 'jsonrpc'), {
-      method: 'post',
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         jsonrpc: '2.0',
