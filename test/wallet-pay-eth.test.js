@@ -8,6 +8,7 @@ const TestNode = require('../../wallet-test-tools/src/eth/index.js')
 const Ethereum = require('../src/eth.currency.js')
 const currencyFac = require('../src/erc20.currency.js')
 const ERC20 = require('../src/erc20.js')
+const opts = require('./test.opts.json')
 
 async function activeWallet (opts = {}) {
   const provider = new Provider({
@@ -44,7 +45,7 @@ async function getTestnode () {
 const USDT = currencyFac({
   name: 'USDT',
   base_name: 'USDT',
-  contractAddress: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+  contractAddress: opts.test_contract,
   decimal_places: 6
 })
 
@@ -94,6 +95,7 @@ async function syncTest (t, sync) {
   const addr2 = await eth.getNewAddress()
   const amt1 = 0.00002
   const amt2 = 0.00005
+
   t.comment('send eth to address ', addr.address)
   await node.sendToAddress({ address: addr.address, amount: amt1 })
   t.comment('send eth to address ', addr2.address)
@@ -106,11 +108,7 @@ async function syncTest (t, sync) {
     await eth.syncTransactions()
   } else {
     t.comment('waiting for event')
-    await new Promise((resolve) => {
-      eth.on('new-tx', () => {
-        resolve()
-      })
-    })
+    await eth._onNewTx()
   }
 
   const bal = await eth.getBalance({}, addr.address)
@@ -141,7 +139,7 @@ test('new wallet syncTransactions', async (t) => {
   await syncTest(t, true)
 })
 
-test('new wallet, websocket tx detection', async (t) => {
+solo('new wallet, websocket tx detection', async (t) => {
   await syncTest(t, false)
 })
 
@@ -260,14 +258,14 @@ test('getActiveAddresses', async (t) => {
     await eth.destroy()
   })
 
-  solo('ERC20: detect transactions', { skip }, async (t) => {
+  test('ERC20: detect transactions', { skip }, async (t) => {
     const eth = await activeWallet({ newWallet: true })
     const node = await getTestnode()
     const sendAmount = BigInt(Math.floor(Math.random() * (20 - 2 + 1) + 2))
     const amt2 = 123
     const addr = await eth.getNewAddress()
     t.comment(`Sending: ${sendAmount} tokens  to ${addr.address}`)
-    await node.sendToken({
+     await node.sendToken({
       address: addr.address,
       amount: sendAmount
     })

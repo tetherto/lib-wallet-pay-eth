@@ -76,7 +76,7 @@ class WalletPayEthereum extends WalletPay {
 
   _onNewTx(){
     return new Promise((resolve) => {
-      this.on('new-tx', resolve)
+      this.once('new-tx', resolve)
     })
   }
 

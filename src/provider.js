@@ -1,3 +1,4 @@
+'use strict'
 const { Web3 } = require('web3')
 const  WebSocket = require('websocket').w3cwebsocket
 const { EventEmitter } = require('events')
@@ -26,8 +27,8 @@ class Provider extends EventEmitter {
   }
 
   async init () {
-    // TODO: check if everything is ok
     await this._startWs()
+    await this.web3.eth.getChainId()
   }
 
   async stop () {
@@ -38,6 +39,7 @@ class Provider extends EventEmitter {
   async _startWs () {
     return new Promise((resolve, reject) => {
       const ws = new WebSocket(this.indexerws, 'echo-protocol')
+      this._ws = ws
       ws.onerror = (err) => {
         reject(new Error('failed to connected to indexer websocket: ' + err.message))
       }
@@ -56,12 +58,12 @@ class Provider extends EventEmitter {
           res = JSON.parse(data?.data.toString())
         } catch (err) {
           console.log('bad event from server, ignored', err)
+          return 
         }
         const evname = res?.event
-        if (!evname) console.log('event has no name ignored ', res)
+        if (!evname) return console.log('event has no name ignored ', res)
         this.emit(evname, res.data)
       }
-      this._ws = ws
     })
   }
 
