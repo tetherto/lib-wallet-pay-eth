@@ -245,4 +245,29 @@ await wallet.resumeSync();
 4. Connect to provider
 5. Create and initialize EthereumPay instance
 
+## 🛠️ Development
+
+1. [Setup local Ethereum Hardhat enviroment](https://github.com/tetherto/wallet-lib-test-tools/blob/main/src/eth/README.md)
+2. Clone the repository:
+3. Install dependencies:
+   ```
+   npm install
+   ```
+4. Run various tests:
+   ```
+   npm run test:pay
+   ```
+
+### 🧪 Testing
+
+- This package includes extensive integration tests.
+- We use [Brittle](https://github.com/holepunchto/brittle) for testing.
+- Integration tests require an Ethereum node connected to a testnet or local network.
+- To set up the testing environment, see: [Test tools repo](https://github.com/tetherto/wallet-lib-test-tools/blob/main/src/eth/README.md)
+
+To run tests, check `package.json` for the various test scripts. You can run them using:
+
+```
+npm run test:*
+```
 
