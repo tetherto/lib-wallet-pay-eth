@@ -1,3 +1,17 @@
+// Copyright 2024 Tether Operations Limited
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+'use strict'
 const { WalletPay, HdWallet } = require('lib-wallet')
 const Ethereum = require('./eth.currency')
 const StateDb = require('./state')
@@ -53,28 +67,24 @@ class WalletPayEthereum extends WalletPay {
     this._halt = false
   }
 
-  _getTokenFromContract(addr){
-    const tokens = this.getTokens()
-  }
-
   _listenToEvents () {
     this.provider.on('subscribeAccount', async (res) => {
-      if(res.token) {
+      if (res.token) {
         this._eachToken(async (token) => {
-          if(token.tokenContract.toLowerCase() !== res?.token.toLowerCase()) return 
+          if (token.tokenContract.toLowerCase() !== res?.token.toLowerCase()) return
           const tx = await token.updateTxEvent(res)
           this.emit('new-tx', { tx, token: token.name })
         })
 
-        return 
+        return
       }
-      const tx  = await this._storeTx(res.tx)
+      const tx = await this._storeTx(res.tx)
       await this._setAddrBalance(res.addr)
-      this.emit('new-tx',{ tx })
+      this.emit('new-tx', { tx })
     })
   }
 
-  _onNewTx(){
+  _onNewTx () {
     return new Promise((resolve) => {
       this.once('new-tx', resolve)
     })
@@ -91,7 +101,7 @@ class WalletPayEthereum extends WalletPay {
     const tokenContracts = Array.from(this.getTokens()).map((t) => {
       return t[1].tokenContract
     })
-    this.provider.subscribeToAccount(res.addr.address,tokenContracts)
+    this.provider.subscribeToAccount(res.addr.address, tokenContracts)
     return res.addr
   }
 

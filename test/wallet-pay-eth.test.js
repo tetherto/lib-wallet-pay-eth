@@ -1,3 +1,18 @@
+// Copyright 2024 Tether Operations Limited
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+'use strict'
+
 const { solo, test } = require('brittle')
 const EthPay = require('../src/wallet-pay-eth.js')
 const KeyManager = require('../src/wallet-key-eth.js')
@@ -138,8 +153,7 @@ async function syncTest (t, sync) {
 test('new wallet syncTransactions', async (t) => {
   await syncTest(t, true)
 })
-
-solo('new wallet, websocket tx detection', async (t) => {
+test('new wallet, websocket tx detection', async (t) => {
   await syncTest(t, false)
 })
 
@@ -199,7 +213,7 @@ test('getActiveAddresses', async (t) => {
   const tkopts = { token: USDT.name }
 
   const skip = false
-  test('ERC20: getBalance', { skip }, async (t) => {
+  solo('ERC20: getBalance', { skip }, async (t) => {
     const eth = await activeWallet({ newWallet: true })
     const node = await getTestnode()
     const sendAmount = BigInt(Math.floor(Math.random() * (20 - 2 + 1) + 2))
@@ -265,7 +279,7 @@ test('getActiveAddresses', async (t) => {
     const amt2 = 123
     const addr = await eth.getNewAddress()
     t.comment(`Sending: ${sendAmount} tokens  to ${addr.address}`)
-     await node.sendToken({
+    await node.sendToken({
       address: addr.address,
       amount: sendAmount
     })
@@ -277,7 +291,6 @@ test('getActiveAddresses', async (t) => {
     })
     t.comment('waiting for tx detection')
     await eth._onNewTx()
-
 
     const t0 = t.test('getTransactions')
 

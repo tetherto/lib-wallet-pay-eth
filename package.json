@@ -12,7 +12,7 @@
     "test:pay": "brittle test/wallet-pay-eth.test.js"
   },
   "author": "rbndg",
-  "license": "MIT",
+  "license": "APACHE-2.0",
   "dependencies": {
     "@ethereumjs/wallet": "^2.0.3",
     "wallet-seed-bip39": "github:rbndg/lib-wallet-seed-bip39",

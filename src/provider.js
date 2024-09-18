@@ -1,6 +1,19 @@
+// Copyright 2024 Tether Operations Limited
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 'use strict'
 const { Web3 } = require('web3')
-const  WebSocket = require('websocket').w3cwebsocket
+const WebSocket = require('websocket').w3cwebsocket
 const { EventEmitter } = require('events')
 
 class Provider extends EventEmitter {
@@ -58,7 +71,7 @@ class Provider extends EventEmitter {
           res = JSON.parse(data?.data.toString())
         } catch (err) {
           console.log('bad event from server, ignored', err)
-          return 
+          return
         }
         const evname = res?.event
         if (!evname) return console.log('event has no name ignored ', res)
@@ -74,7 +87,7 @@ class Provider extends EventEmitter {
   }
 
   async subscribeToAccount (addr, tokens) {
-    this._subAccounts.push([addr,tokens])
+    this._subAccounts.push([addr, tokens])
     this._ws.send(JSON.stringify({
       method: 'subscribeAccount',
       params: [addr, tokens]
