@@ -63,7 +63,7 @@ class ERC20 extends EventEmitter {
     await this.state.storeTxHistory(tx)
     const balances = await this.state.getBalances()
     const bal = await this.getBalance({}, res.addr)
-    await balances.setBal(addr.address, bal.confirmed)
+    await balances.setBal(res.addr, bal.confirmed)
     await this._hdWallet.addAddress(addr)
     return tx
   }

@@ -320,8 +320,7 @@ class WalletPayEthereum extends WalletPay {
   }
 
   async _getGasPrice () {
-    // TODO: Get gas price
-    return 46773859
+    return this.provider.web3.eth.getGasPrice();
   }
 
   isValidAddress (address) {

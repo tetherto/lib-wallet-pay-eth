@@ -213,7 +213,7 @@ test('getActiveAddresses', async (t) => {
   const tkopts = { token: USDT.name }
 
   const skip = false
-  solo('ERC20: getBalance', { skip }, async (t) => {
+  test('ERC20: getBalance', { skip }, async (t) => {
     const eth = await activeWallet({ newWallet: true })
     const node = await getTestnode()
     const sendAmount = BigInt(Math.floor(Math.random() * (20 - 2 + 1) + 2))
@@ -334,7 +334,7 @@ test('getActiveAddresses', async (t) => {
     t.ok(x === sends.length, 'all addresses found')
   })
 
-  test('ERC20: sendTransactions sweep all tokens', { skip }, async (t) => {
+  solo('ERC20: sendTransactions sweep all tokens', { skip }, async (t) => {
     const eth = await activeWallet({ newWallet: true })
     const node = await getTestnode()
     const nodeAddr = await node.getNewAddress()
@@ -365,6 +365,5 @@ test('getActiveAddresses', async (t) => {
       x++
     }
     t.ok(x === sends.length, 'all addresses found')
-    await eth.destroy()
   })
 })()
