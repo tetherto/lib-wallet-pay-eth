@@ -213,10 +213,11 @@ test('getActiveAddresses', async (t) => {
   const tkopts = { token: USDT.name }
 
   const skip = false
-  test('ERC20: getBalance', { skip }, async (t) => {
+  solo('ERC20: getBalance', { skip }, async (t) => {
     const eth = await activeWallet({ newWallet: true })
     const node = await getTestnode()
     const sendAmount = BigInt(Math.floor(Math.random() * (20 - 2 + 1) + 2))
+    const sendAmount2 = BigInt(Math.floor(Math.random() * (20 - 2 + 1) + 2))
     const addr = await eth.getNewAddress()
     t.ok(addr.address, 'can generate address')
 
@@ -231,7 +232,15 @@ test('getActiveAddresses', async (t) => {
     await eth.syncTransactions(tkopts)
     balance = await eth.getBalance(tkopts, addr.address)
     t.ok(balance.confirmed.toMainUnit() === sendAmount.toString(), 'balance matches send amount')
-    await eth.destroy()
+
+    const addr2 = await eth.getNewAddress()
+    await node.sendToken({
+      address : addr2.address,
+      amount: sendAmount2
+    })
+    await eth.syncTransactions(tkopts)
+    const total = await eth.getBalance(tkopts)
+    t.ok(total.toMainUnit() === (sendAmount + sendAmount2).toString(), 'total wallet balance for token  is correct')
   })
 
   test('ERC20: syncTransactions', { skip }, async (t) => {
@@ -334,7 +343,7 @@ test('getActiveAddresses', async (t) => {
     t.ok(x === sends.length, 'all addresses found')
   })
 
-  solo('ERC20: sendTransactions sweep all tokens', { skip }, async (t) => {
+  test('ERC20: sendTransactions sweep all tokens', { skip }, async (t) => {
     const eth = await activeWallet({ newWallet: true })
     const node = await getTestnode()
     const nodeAddr = await node.getNewAddress()

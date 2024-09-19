@@ -64,7 +64,7 @@ class ERC20 extends EventEmitter {
     const balances = await this.state.getBalances()
     const bal = await this.getBalance({}, res.addr)
     await balances.setBal(res.addr, bal.confirmed)
-    await this._hdWallet.addAddress(addr)
+  await this._hdWallet.addAddress(addr)
     return tx
   }
 
@@ -74,6 +74,11 @@ class ERC20 extends EventEmitter {
 
   async getBalance (opts, addr) {
     // todo: get state balance or get single address balance
+    if(!addr) {
+      const bal = await this.state.getBalances()
+      return bal.getTotal()
+    }
+      
     const bal = await this._contract.methods.balanceOf(addr).call()
 
     return new this._toBalance(new this.Currency(bal, 'main'))
