@@ -343,7 +343,7 @@ test('getActiveAddresses', async (t) => {
     t.ok(x === sends.length, 'all addresses found')
   })
 
-  test('ERC20: sendTransactions sweep all tokens', { skip }, async (t) => {
+  solo('ERC20: sendTransactions sweep all tokens', { skip }, async (t) => {
     const eth = await activeWallet({ newWallet: true })
     const node = await getTestnode()
     const nodeAddr = await node.getNewAddress()
@@ -363,6 +363,7 @@ test('getActiveAddresses', async (t) => {
     let x = 0
     for (const [addr, bal] of addrs) {
       const [tbal] = bal
+      t.comment(`sending ${tbal.toMainUnit()} tokens from wallet`)
       await eth.sendTransaction(tkopts, {
         sender: addr,
         amount: tbal.toMainUnit(),

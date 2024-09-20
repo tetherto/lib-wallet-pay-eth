@@ -15,14 +15,13 @@
   "license": "APACHE-2.0",
   "dependencies": {
     "@ethereumjs/wallet": "^2.0.3",
+    "lib-wallet": "github:rbndg/lib-wallet",
     "wallet-seed-bip39": "github:rbndg/lib-wallet-seed-bip39",
     "web3": "^4.10.0",
-    "websocket": "^1.0.35",
-    "ws": "^8.18.0"
+    "websocket": "^1.0.35"
   },
   "devDependencies": {
     "brittle": "^3.5.2",
-    "standard": "^17.1.0",
-    "wtfnode": "^0.9.3"
+    "standard": "^17.1.0"
   }
 }
