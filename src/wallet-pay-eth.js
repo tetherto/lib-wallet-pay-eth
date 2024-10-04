@@ -21,7 +21,7 @@ class WalletPayEthereum extends WalletPay {
     super(config)
     this.ready = false
     this._halt = false
-    this.web3 = config.provider.web3
+    this.web3 = config?.provider?.web3
     this._setCurrency(Ethereum)
   }
 
@@ -29,6 +29,16 @@ class WalletPayEthereum extends WalletPay {
     // @desc use default key manager
     if (!this.keyManager) {
       this.keyManager = new (require('./wallet-key-eth.js'))({ network: this.network })
+    }
+
+    // @desc use default provider
+    if(!this.provider) {
+      this.provider = new (require('./provider'))({
+        web3: this.config.web3, 
+        indexer: this.config.indexer_rpc,
+        indexerWs: this.config.indexer_ws
+      })
+      await this.provider.init()
     }
 
     await super.initialize(ctx)
@@ -151,12 +161,18 @@ class WalletPayEthereum extends WalletPay {
     return state
   }
 
+  /** 
+  * @desc get all addrs that have had a balance at some point and their current balance
+  */
   async getActiveAddresses (opts) {
     const state = await this._getState(opts)
     const bal = await state.getBalances()
     return bal.getAll()
   }
 
+  /** 
+  * @desc get all addrs that have balance
+  */
   async getFundedTokenAddresses (opts) {
     if (!opts.token) {
       return this.getActiveAddresses()
