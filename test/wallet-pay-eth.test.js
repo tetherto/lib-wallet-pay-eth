@@ -19,7 +19,7 @@ const KeyManager = require('../src/wallet-key-eth.js')
 const { WalletStoreHyperbee } = require('lib-wallet-store')
 const BIP39Seed = require('wallet-seed-bip39')
 const Provider = require('../src/provider.js')
-const TestNode = require('../../wallet-test-tools/src/eth/index.js')
+const TestNode = require('wallet-lib-test-tools/src/eth/index.js')
 const Ethereum = require('../src/eth.currency.js')
 const currencyFac = require('../src/erc20.currency.js')
 const ERC20 = require('../src/erc20.js')
@@ -32,6 +32,8 @@ async function activeWallet (opts = {}) {
     indexerWs: 'http://127.0.0.1:8181/'
   })
 
+  const store =  new WalletStoreHyperbee() 
+  await store.init()
   await provider.init()
   const eth = new EthPay({
     asset_name: 'eth',
@@ -39,7 +41,7 @@ async function activeWallet (opts = {}) {
     key_manager: new KeyManager({
       seed: opts.newWallet ? await BIP39Seed.generate() : await BIP39Seed.generate('taxi carbon sister jeans notice combine once carpet know dice oil solar')
     }),
-    store: new WalletStoreHyperbee(),
+    store,
     network: 'regtest',
     token: [
       new ERC20({
@@ -213,7 +215,7 @@ test('getActiveAddresses', async (t) => {
   const tkopts = { token: USDT.name }
 
   const skip = false
-  solo('ERC20: getBalance', { skip }, async (t) => {
+  test('ERC20: getBalance', { skip }, async (t) => {
     const eth = await activeWallet({ newWallet: true })
     const node = await getTestnode()
     const sendAmount = BigInt(Math.floor(Math.random() * (20 - 2 + 1) + 2))
@@ -343,7 +345,7 @@ test('getActiveAddresses', async (t) => {
     t.ok(x === sends.length, 'all addresses found')
   })
 
-  solo('ERC20: sendTransactions sweep all tokens', { skip }, async (t) => {
+  test('ERC20: sendTransactions sweep all tokens', { skip }, async (t) => {
     const eth = await activeWallet({ newWallet: true })
     const node = await getTestnode()
     const nodeAddr = await node.getNewAddress()
