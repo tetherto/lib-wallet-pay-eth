@@ -83,9 +83,9 @@ class WalletPayEthereum extends WalletPay {
         this._eachToken(async (token) => {
           if (token.tokenContract.toLowerCase() !== res?.token.toLowerCase()) return
           const tx = await token.updateTxEvent(res)
-          this.emit('new-tx', { 
-            token: token.name, 
-            address: res.address,  
+          this.emit('new-tx', {
+            token: token.name,
+            address: res.address,
             value: tx.value,
             from: tx.from,
             to: tx.to,
@@ -131,7 +131,6 @@ class WalletPayEthereum extends WalletPay {
    */
   async getTransactions (opts, fn) {
     const state = await this._getState(opts)
-
     const txIndex = await state.getTxIndex()
 
     if (!txIndex || !txIndex.earliest) return

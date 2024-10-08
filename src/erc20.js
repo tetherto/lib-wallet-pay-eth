@@ -81,7 +81,7 @@ class ERC20 extends EventEmitter {
     let bal
     try {
       bal = await this._contract.methods.balanceOf(addr).call()
-    } catch(err) {
+    } catch (err) {
       console.log('failed to get balance', addr, err)
       throw err
     }

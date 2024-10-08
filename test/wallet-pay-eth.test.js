@@ -13,13 +13,13 @@
 // limitations under the License.
 'use strict'
 
-const { solo, test } = require('brittle')
+const { test } = require('brittle')
 const EthPay = require('../src/wallet-pay-eth.js')
 const KeyManager = require('../src/wallet-key-eth.js')
 const { WalletStoreHyperbee } = require('lib-wallet-store')
 const BIP39Seed = require('wallet-seed-bip39')
 const Provider = require('../src/provider.js')
-const { ethereum : TestNode } = require('wallet-lib-test-tools')
+const { ethereum: TestNode } = require('wallet-lib-test-tools')
 const Ethereum = require('../src/eth.currency.js')
 const currencyFac = require('../src/erc20.currency.js')
 const ERC20 = require('../src/erc20.js')
@@ -32,7 +32,7 @@ async function activeWallet (opts = {}) {
     indexerWs: 'http://127.0.0.1:8181/'
   })
 
-  const store =  new WalletStoreHyperbee() 
+  const store = new WalletStoreHyperbee()
   await store.init()
   await provider.init()
   const eth = new EthPay({
@@ -55,8 +55,8 @@ async function activeWallet (opts = {}) {
 
 async function getTestnode () {
   const eth = new TestNode({
-    tokenConfig : {
-      contractAddress : opts.test_contract
+    tokenConfig: {
+      contractAddress: opts.test_contract
     }
   })
   await eth.init()
