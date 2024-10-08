@@ -235,7 +235,7 @@ test('getActiveAddresses', async (t) => {
 
     const addr2 = await eth.getNewAddress()
     await node.sendToken({
-      address : addr2.address,
+      address: addr2.address,
       amount: sendAmount2
     })
     await eth.syncTransactions(tkopts)

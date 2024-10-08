@@ -73,12 +73,18 @@ class ERC20 extends EventEmitter {
   }
 
   async getBalance (opts, addr) {
-    if(!addr) {
+    if (!addr) {
       const bal = await this.state.getBalances()
       return bal.getTotal()
     }
-      
-    const bal = await this._contract.methods.balanceOf(addr).call()
+
+    let bal
+    try {
+      bal = await this._contract.methods.balanceOf(addr).call()
+    } catch(err) {
+      console.log('failed to get balance', addr, err)
+      throw err
+    }
 
     return new this._toBalance(new this.Currency(bal, 'main'))
   }

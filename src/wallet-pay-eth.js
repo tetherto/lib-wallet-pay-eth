@@ -32,9 +32,9 @@ class WalletPayEthereum extends WalletPay {
     }
 
     // @desc use default provider
-    if(!this.provider) {
+    if (!this.provider) {
       this.provider = new (require('./provider'))({
-        web3: this.config.web3, 
+        web3: this.config.web3,
         indexer: this.config.indexer_rpc,
         indexerWs: this.config.indexer_ws
       })
@@ -83,7 +83,15 @@ class WalletPayEthereum extends WalletPay {
         this._eachToken(async (token) => {
           if (token.tokenContract.toLowerCase() !== res?.token.toLowerCase()) return
           const tx = await token.updateTxEvent(res)
-          this.emit('new-tx', { tx, token: token.name })
+          this.emit('new-tx', { 
+            token: token.name, 
+            address: res.address,  
+            value: tx.value,
+            from: tx.from,
+            to: tx.to,
+            height: res.height,
+            txid: tx.txid
+          })
         })
 
         return
@@ -161,7 +169,7 @@ class WalletPayEthereum extends WalletPay {
     return state
   }
 
-  /** 
+  /**
   * @desc get all addrs that have had a balance at some point and their current balance
   */
   async getActiveAddresses (opts) {
@@ -170,7 +178,7 @@ class WalletPayEthereum extends WalletPay {
     return bal.getAll()
   }
 
-  /** 
+  /**
   * @desc get all addrs that have balance
   */
   async getFundedTokenAddresses (opts) {
@@ -336,7 +344,7 @@ class WalletPayEthereum extends WalletPay {
   }
 
   async _getGasPrice () {
-    return this.provider.web3.eth.getGasPrice();
+    return this.provider.web3.eth.getGasPrice()
   }
 
   isValidAddress (address) {

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 'use strict'
+
 const { Web3 } = require('web3')
 const WebSocket = require('websocket').w3cwebsocket
 const { EventEmitter } = require('events')
