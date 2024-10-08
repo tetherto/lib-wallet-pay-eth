@@ -23,6 +23,6 @@
   "devDependencies": {
     "brittle": "^3.5.2",
     "standard": "^17.1.0",
-    "wallet-test-tools": "github:rbndg/wallet-lib-test-tools"
+    "wallet-lib-test-tools": "github:rbndg/wallet-lib-test-tools"
   }
 }
