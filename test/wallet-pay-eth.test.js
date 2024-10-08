@@ -54,7 +54,11 @@ async function activeWallet (opts = {}) {
 }
 
 async function getTestnode () {
-  const eth = new TestNode()
+  const eth = new TestNode({
+    tokenConfig : {
+      contractAddress : opts.test_contract
+    }
+  })
   await eth.init()
   return eth
 }
