@@ -103,7 +103,7 @@ class StateDb {
   }
 
   getTxIndex () {
-    return this._txIndex || this.store.get('tx_index')
+    return this.store.get('tx_index')
   }
 
   async updateTxIndex (i) {
@@ -115,7 +115,7 @@ class StateDb {
       index.latest = i
     }
     this._txIndex = index
-    return this.store.put('tx_index')
+    return this.store.put('tx_index', index)
   }
 
   async storeTxHistory (data) {
