@@ -117,8 +117,8 @@ class WalletPayEthereum extends WalletPay {
       return this.keyManager.addrFromPath(path)
     })
     const tokenContracts = Array.from(this.getTokens()).map((t) => {
-      return t[1].tokenContract
-    })
+      return t[1]?.tokenContract
+    }).filter(Boolean)
     this.provider.subscribeToAccount(res.addr.address, tokenContracts)
     return res.addr
   }
