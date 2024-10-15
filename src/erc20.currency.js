@@ -18,7 +18,7 @@ const BN = Currency._BN
 
 module.exports = function currencyFactory (opts) {
   const contract = {
-    ABI: Erc20Abi, 
+    ABI: Erc20Abi,
     address: opts.contractAddress
   }
 

@@ -122,7 +122,7 @@ class WalletPayEthereum extends WalletPay {
       return t[1]?.tokenContract
     }).filter(Boolean)
 
-    if(tokenContracts.length > 0) {
+    if (tokenContracts.length > 0) {
       provider.subscribeToAccount(res.addr.address, tokenContracts)
     }
 
