@@ -113,13 +113,19 @@ class WalletPayEthereum extends WalletPay {
    * return {Promise<object>} Address object
   */
   async getNewAddress () {
-    const res = await this._hdWallet.getNewAddress((path) => {
+    const { _hdWallet, provider } = this
+
+    const res = await _hdWallet.getNewAddress((path) => {
       return this.keyManager.addrFromPath(path)
     })
     const tokenContracts = Array.from(this.getTokens()).map((t) => {
       return t[1]?.tokenContract
     }).filter(Boolean)
-    this.provider.subscribeToAccount(res.addr.address, tokenContracts)
+
+    if(tokenContracts.length > 0) {
+      provider.subscribeToAccount(res.addr.address, tokenContracts)
+    }
+
     return res.addr
   }
 
@@ -221,8 +227,8 @@ class WalletPayEthereum extends WalletPay {
 
   _storeTx (tx) {
     const data = {
-      from: tx.from,
-      to: tx.to,
+      from: tx.from.toLowerCase(),
+      to: tx.to.toLowerCase(),
       value: new Ethereum(tx.value, 'base'),
       height: tx.blockNumber,
       txid: tx.hash,
@@ -264,12 +270,10 @@ class WalletPayEthereum extends WalletPay {
     })
 
     if (this._halt) {
-      this._isSyncing = false
       this.emit('sync-end')
       this.resumeSync()
       return
     }
-    this._isSyncing = false
     this.resumeSync()
     this.emit('sync-end')
   }

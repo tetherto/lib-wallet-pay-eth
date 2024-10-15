@@ -95,8 +95,8 @@ class ERC20 extends EventEmitter {
       return {
         txid: data.transactionHash,
         height: data.blockNumber.toString(),
-        from: data.returnValues._from,
-        to: data.returnValues._to,
+        from: data.returnValues._from.toLowerCase(),
+        to: data.returnValues._to.toLowerCase(),
         value: new this.Currency(data.returnValues._value.toString(), 'main')
       }
     })

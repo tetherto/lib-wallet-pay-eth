@@ -46,13 +46,13 @@ class WalletKeyEth {
   * @param {string} path - BIP32 path
   * @param {string} addrType - Address type. example: p2wkh
   * @returns {Object}
-  * @desc Derives a bitcoin address from a BIP32 path
+  * @desc Derives a eth address from a BIP32 path
   */
   addrFromPath (path) {
     const wallet = this.hdkey.derivePath(path).getWallet()
     return {
       addr: {
-        address: wallet.getAddressString(),
+        address: wallet.getAddressString().toLowerCase(),
         publicKey: wallet.getPublicKeyString(),
         privateKey: wallet.getPrivateKeyString(),
         path
