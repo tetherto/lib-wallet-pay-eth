@@ -22,7 +22,9 @@ This module requires a indexer server. See [lib-wallet-indexer](https://github.c
 
 ```javascript
 // Start with a storage engine
-const storeEngine = new WalletStoreMemory()
+const storeEngine = new WalletStoreHyperbee({
+  store_path: './db'
+})
 await storeEngine.init()
 
 // Generate a seed or use a mnemonic phrase
@@ -38,9 +40,9 @@ const USDT = currencyFac({
 
 // Connect to a provider 
 const provider = await Provider({ 
-    web3: 'localhost:8888',         // URI to Web3 provider
-    indexer: 'localhost:8000',      // URI to lib-wallet-indexer-eth rpc
-    indexerws: 'localhost:1211'     // URI to lib-wallet-indexer-eth websocket
+    web3: 'localhost:8888',          // URI to Web3 provider
+    indexer: 'localhost:8000/rpc',   // URI to lib-wallet-indexer-eth rpc
+    indexerWs: 'localhost:8000/ws',  // URI to lib-wallet-indexer-eth ws
 })
 // Start provider
 await provider.init()
