@@ -13,7 +13,7 @@
 // limitations under the License.
 'use strict'
 
-const { test } = require('brittle')
+const { test  } = require('brittle')
 const EthPay = require('../src/wallet-pay-eth.js')
 const KeyManager = require('../src/wallet-key-eth.js')
 const { WalletStoreHyperbee } = require('lib-wallet-store')
@@ -24,22 +24,32 @@ const Ethereum = require('../src/eth.currency.js')
 const currencyFac = require('../src/erc20.currency.js')
 const ERC20 = require('../src/erc20.js')
 const opts = require('./test.opts.json')
+const fs = require('fs')
 
-async function activeWallet (opts = {}) {
-  const provider = new Provider({
-    web3: 'ws://127.0.0.1:8545/',
-    indexer: 'http://127.0.0.1:8008/',
-    indexerWs: 'http://127.0.0.1:8181/'
+const TMP_STORE = './tmp'
+
+async function activeWallet (param = {}) {
+  let provider = param.provider
+  if (!param.provider) {
+    provider = new Provider({
+      web3: opts.web3,
+      indexer: opts.indexer,
+      indexerWs: opts.indexerWs
+    })
+    await provider.init()
+  }
+
+  const store = new WalletStoreHyperbee({
+    store_path: param.store ? TMP_STORE : null
   })
 
-  const store = new WalletStoreHyperbee()
   await store.init()
-  await provider.init()
+
   const eth = new EthPay({
     asset_name: 'eth',
     provider,
     key_manager: new KeyManager({
-      seed: opts.newWallet ? await BIP39Seed.generate() : await BIP39Seed.generate('taxi carbon sister jeans notice combine once carpet know dice oil solar')
+      seed: param.newWallet ? await BIP39Seed.generate() : await BIP39Seed.generate(param.seed || 'taxi carbon sister jeans notice combine once carpet know dice oil solar')
     }),
     store,
     network: 'regtest',
@@ -72,9 +82,9 @@ const USDT = currencyFac({
 
 test('Create an instances of WalletPayEth', async function (t) {
   const provider = new Provider({
-    web3: 'ws://127.0.0.1:8545/',
-    indexer: 'http://127.0.0.1:8008/',
-    indexerWs: 'http://127.0.0.1:8181/'
+    web3: opts.web3,
+    indexer: opts.indexer,
+    indexerWs: opts.indexerWs
   })
   await provider.init()
   const eth = new EthPay({
@@ -92,6 +102,7 @@ test('Create an instances of WalletPayEth', async function (t) {
   t.comment('destoying instance')
   await eth.destroy()
 })
+
 test('getNewAddress', async function (t) {
   const expect = {
     address: '0xb89c31da0a0d796240dc99e551287f16145ce7a3',
@@ -159,6 +170,7 @@ async function syncTest (t, sync) {
 test('new wallet syncTransactions', async (t) => {
   await syncTest(t, true)
 })
+
 test('new wallet, websocket tx detection', async (t) => {
   await syncTest(t, false)
 })
@@ -213,9 +225,53 @@ test('getActiveAddresses', async (t) => {
     x++
   }
   t.ok(x === sends.length, 'all addresses found')
-});
+})
 
-(() => {
+test('listen to last address on start', async (t) => {
+  fs.rmSync(TMP_STORE, { recursive: true, force: true })
+
+  const provider = new Provider({
+    web3: opts.web3,
+    indexer: opts.indexer,
+    indexerWs: opts.indexerWs
+  })
+
+  let addrTest = []
+  provider.subscribeToAccount = async (addr, token) => {
+    addrTest.push(addr)
+    t.ok(token.length === 1 && token[0] === opts.test_contract, 'contract matches')
+  }
+  await provider.init()
+
+  const eth = await activeWallet({
+    newWallet: true,
+    store: true,
+    provider
+  })
+
+  const addrs = [
+    (await eth.getNewAddress()).address,
+    (await eth.getNewAddress()).address
+  ]
+
+  t.alike(addrs, addrTest, 'should subscribe to address')
+
+  const seed = eth.keyManager.seed.mnemonic
+  t.comment('stop first instance')
+  await eth.destroy()
+  addrTest = []
+
+  const eth2 = await activeWallet({
+    newWallet: true,
+    store: true,
+    provider,
+    seed
+  })
+  t.alike(addrs, addrTest, 'should subscribe to list of address on start')
+  await eth2.destroy()
+})
+
+;(() => {
   const tkopts = { token: USDT.name }
 
   const skip = false
@@ -282,6 +338,7 @@ test('getActiveAddresses', async (t) => {
       const amt = amts.shift()
       t0.ok(new USDT(tx.value).toBaseUnit() === new USDT(amt, 'main').toBaseUnit(), 'amount matches')
     })
+
     t.ok(amts.length === 0, 'all expected  transactions found')
     t0.end()
     await eth.destroy()

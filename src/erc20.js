@@ -45,7 +45,10 @@ class ERC20 extends EventEmitter {
     this._setupContract()
   }
 
-  _destroy () {}
+  async _destroy () {
+    await this.state.close()
+    await this._hdWallet.close()
+  }
 
   _setupContract () {
     const web3 = this.provider.web3

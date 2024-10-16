@@ -22,6 +22,7 @@ class WalletPayEthereum extends WalletPay {
     this.ready = false
     this._halt = false
     this.web3 = config?.provider?.web3
+    this._maxAddrsWatch = 10 || config.maxAddrsWatch
     this._setCurrency(Ethereum)
   }
 
@@ -58,6 +59,7 @@ class WalletPayEthereum extends WalletPay {
     await this._hdWallet.init()
     await this._initTokens(this)
     this._listenToEvents()
+    await this._listenToLastAddress()
 
     this.ready = true
   }
@@ -66,6 +68,8 @@ class WalletPayEthereum extends WalletPay {
     this.ready = false
     await this.callToken('_destroy', null, [])
     await this.provider.stop()
+    await this._hdWallet.close()
+    await this.state.close()
     await this.store.close()
   }
 
@@ -75,6 +79,14 @@ class WalletPayEthereum extends WalletPay {
 
   async resumeSync () {
     this._halt = false
+  }
+
+  async _listenToLastAddress () {
+    const addrs = await this._hdWallet.getAllAddress()
+    const tokens = this._getTokenAddrs()
+    addrs.slice(this._maxAddrsWatch * -1).forEach((addr) => {
+      this.provider.subscribeToAccount(addr, tokens)
+    })
   }
 
   _listenToEvents () {
@@ -108,6 +120,12 @@ class WalletPayEthereum extends WalletPay {
     })
   }
 
+  _getTokenAddrs () {
+    return Array.from(this.getTokens()).map((t) => {
+      return t[1]?.tokenContract
+    }).filter(Boolean)
+  }
+
   /**
    * @description get a new ETH account address
    * return {Promise<object>} Address object
@@ -118,9 +136,7 @@ class WalletPayEthereum extends WalletPay {
     const res = await _hdWallet.getNewAddress((path) => {
       return this.keyManager.addrFromPath(path)
     })
-    const tokenContracts = Array.from(this.getTokens()).map((t) => {
-      return t[1]?.tokenContract
-    }).filter(Boolean)
+    const tokenContracts = this._getTokenAddrs()
 
     if (tokenContracts.length > 0) {
       provider.subscribeToAccount(res.addr.address, tokenContracts)

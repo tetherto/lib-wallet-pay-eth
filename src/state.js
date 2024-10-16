@@ -84,6 +84,10 @@ class StateDb {
     await this.store.init()
   }
 
+  async close () {
+    return this.store.close()
+  }
+
   storeBalances (balance) {
     this._balances = balance
     return this.store.put('current_balance', balance.toJSON())
