@@ -297,7 +297,7 @@ class WalletPayEthereum extends WalletPay {
       const bal = await this.state.getBalances()
       sender = await bal.getAddrByBalance(amount)
     } else {
-      sender = this.state.getAddress(outgoing.sender)
+      sender = await this.state.getAddress(outgoing.sender)
     }
 
     if (!sender) throw new Error('insufficient balance or invalid sender')

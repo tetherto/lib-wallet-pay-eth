@@ -32,7 +32,7 @@ const seed = await BIP39Seed.generate(/** Can enter mnemonic phrase here too */)
 const USDT = currencyFac({
   name: 'USDT',
   base_name: 'USDT',
-  contractAddress: '0x0165878A594ca255338adfa4d48449f69242Eb8F',
+  contractAddress: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
   decimal_places: 6
 })
 
@@ -42,7 +42,7 @@ const provider = await Provider({
     indexer: 'localhost:8000',      // URI to lib-wallet-indexer-eth rpc
     indexerws: 'localhost:1211'     // URI to lib-wallet-indexer-eth websocket
 })
-// Start asset
+// Start provider
 await provider.init()
 
 // Start new eth wallet 
@@ -66,18 +66,18 @@ ethPay.on('synced-path', (path) => {
 })
 
 // Parse blockchain for transactions to your wallet 
-const pay = ethPay.syncTransactions({ 
+const pay = await  ethPay.syncTransactions({ 
     reset: false,  // Passing true will resync from scratch 
     token: "USDT"  // Passing token name will sync token transaction
 })
 
-// Pause the sync process ⏸️
+// Pause the sync process
 await ethPay.pauseSync()
 
 // Get a new address
 const { address } = await ethPay.getNewAddress()
 
-// Get balance of an address 
+// Get token balance   
 const addrBalance = await ethPay.getBalance({
     token: "USDT"  // send token name to get balance of token
 }, address)
@@ -87,13 +87,9 @@ const walletBalance = await ethPay.getBalance({})
 
 // Send ETH to an address 
 const result = await ethPay.sendTransaction({
-    token: "USDT"  // pass token's key to send token instead of ETH
-}, {
     address: '0xaaa...',  // ETH address of the recipient
-    amount: 0.0001,       // Value of amount 
+    amount: '1',       // Value of amount 
     unit: 'main',         // unit of amount: main = ETH and base = wei unit
-    gasPrice: ,           // optional
-    gasLimit:             // optional
 })
 
 // Get a list of transactions 
