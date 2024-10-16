@@ -16,7 +16,7 @@ See the module in action [here](https://github.com/tetherto/lib-wallet/tree/main
 - 🔍 Transaction history retrieval
 
 ## 🗄️ Indexer
-This module requires a indexer server. See [lib-wallet-indexer](https://github.com/tetherto/lib-wallet-indexer)
+This module requires an indexer server. See [lib-wallet-indexer](https://github.com/tetherto/lib-wallet-indexer)
 
 ## 🚀 Usage
 
@@ -95,7 +95,11 @@ const result = await ethPay.sendTransaction({
 })
 
 // Get a list of transactions 
-const txs = await ethPay.getTransactions(query)
+await ethPay.getTransactions({
+    token : "USDT",
+}, (txs) => {
+    //iterate through entire tx history
+})
 
 // Is address a valid Ethereum address? 
 const isvalid = await ethPay.isValidAddress('0xaaa...')
