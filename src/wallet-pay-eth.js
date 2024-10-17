@@ -22,7 +22,7 @@ class WalletPayEthereum extends WalletPay {
     this.ready = false
     this._halt = false
     this.web3 = config?.provider?.web3
-    this._maxAddrsWatch = 10 || config.maxAddrsWatch
+    this._maxAddrsWatch = config.maxAddrsWatch || 5
     this._setCurrency(Ethereum)
   }
 
@@ -84,9 +84,9 @@ class WalletPayEthereum extends WalletPay {
   async _listenToLastAddress () {
     const addrs = await this._hdWallet.getAllAddress()
     const tokens = this._getTokenAddrs()
-    addrs.slice(this._maxAddrsWatch * -1).forEach((addr) => {
-      this.provider.subscribeToAccount(addr, tokens)
-    })
+    return Promise.all(addrs.slice(this._maxAddrsWatch * -1).map((addr) => {
+      return this.provider.subscribeToAccount(addr, tokens)
+    }))
   }
 
   _listenToEvents () {

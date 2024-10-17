@@ -50,6 +50,13 @@ class ERC20 extends EventEmitter {
     await this._hdWallet.close()
   }
 
+  getTokenInfo () {
+    const token = this.Currency.getContract()
+    return {
+      contractAddress: token.address
+    }
+  }
+
   _setupContract () {
     const web3 = this.provider.web3
     const { ABI, address } = this.Currency.getContract()
