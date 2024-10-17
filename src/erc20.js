@@ -27,7 +27,7 @@ class ERC20 extends EventEmitter {
   async init (baseChain) {
     this.provider = baseChain.provider
     this._getGasPrice = baseChain._getGasPrice
-    this._toBalance = baseChain.constructor.createBalance(this.Currency)
+    this._ToBalance = baseChain.constructor.createBalance(this.Currency)
     this._hdWallet = new HdWallet({
       store: baseChain.store.newInstance({ name: 'hdwallet-eth-' + this.name }),
       coinType: "60'",
@@ -86,7 +86,7 @@ class ERC20 extends EventEmitter {
     if (!addr) {
       const bal = await this.state.getBalances()
       
-      return this._toBalance(bal.getTotal())
+      return new this._ToBalance(bal.getTotal())
     }
 
     let bal
@@ -97,7 +97,7 @@ class ERC20 extends EventEmitter {
       throw err
     }
 
-    return new this._toBalance(new this.Currency(bal, 'main'))
+    return new this._ToBalance(new this.Currency(bal, 'main'))
   }
 
   async _getPastEvents (filter) {
