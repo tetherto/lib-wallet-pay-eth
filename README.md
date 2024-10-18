@@ -1,3 +1,10 @@
+<p align="center" width="100">
+<a href="https://github.com/rbndg/lib-wallet">
+<img src="https://github.com/rbndg/lib-wallet/blob/main/docs/logo.svg" width="200"/>
+</a>
+</p>
+
+
 # 🏦 lib-wallet-pay-eth
 
 Ethereum and ERC20 payment method for the wallet library. Using lib-wallet-indexer-eth and Web3 backend.
