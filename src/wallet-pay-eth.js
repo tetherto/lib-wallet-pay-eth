@@ -133,7 +133,7 @@ class WalletPayEthereum extends WalletPay {
   async getNewAddress () {
     const { _hdWallet, provider } = this
 
-    const res = await _hdWallet.getNewAddress((path) => {
+    const res = await _hdWallet.getNewAddress('ext', (path) => {
       return this.keyManager.addrFromPath(path)
     })
     const tokenContracts = this._getTokenAddrs()

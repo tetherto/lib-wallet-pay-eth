@@ -85,7 +85,6 @@ class ERC20 extends EventEmitter {
   async getBalance (opts, addr) {
     if (!addr) {
       const bal = await this.state.getBalances()
-      
       return new this._ToBalance(bal.getTotal())
     }
 
