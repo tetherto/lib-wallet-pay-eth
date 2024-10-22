@@ -74,6 +74,7 @@ class Provider extends EventEmitter {
         if (!evname) return console.log('event has no name ignored ', res)
         this.emit(evname, res.data)
       })
+      resolve()
     })
   }
 
