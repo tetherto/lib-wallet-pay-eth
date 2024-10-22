@@ -14,8 +14,8 @@
 'use strict'
 
 const { Web3 } = require('web3')
-const WebSocket = require('websocket').w3cwebsocket
 const { EventEmitter } = require('events')
+const WS = require('lib-wallet/src/modules/ws-client')
 
 class Provider extends EventEmitter {
   constructor (config) {
@@ -52,24 +52,20 @@ class Provider extends EventEmitter {
 
   async _startWs () {
     return new Promise((resolve, reject) => {
-      const ws = new WebSocket(this.indexerws, 'echo-protocol')
+      const ws = new WS(this.indexerws)
       this._ws = ws
-      ws.onerror = (err) => {
+      ws.on('error', (err) => {
         reject(new Error('failed to connected to indexer websocket: ' + err.message))
-      }
+      })
 
-      ws.onclose = () => {
+      ws.on('close', () => {
         this.emit('close')
-      }
+      })
 
-      ws.onopen = () => {
-        resolve()
-      }
-
-      ws.onmessage = (data) => {
+      ws.on('data', (data) => {
         let res
         try {
-          res = JSON.parse(data?.data.toString())
+          res = JSON.parse(data.toString())
         } catch (err) {
           console.log('bad event from server, ignored', err)
           return
@@ -77,7 +73,7 @@ class Provider extends EventEmitter {
         const evname = res?.event
         if (!evname) return console.log('event has no name ignored ', res)
         this.emit(evname, res.data)
-      }
+      })
     })
   }
 
