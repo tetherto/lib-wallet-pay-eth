@@ -86,7 +86,7 @@ class Provider extends EventEmitter {
 
   async subscribeToAccount (addr, tokens) {
     this._subAccounts.push([addr, tokens])
-    this._ws.send(JSON.stringify({
+    this._ws.write(JSON.stringify({
       method: 'subscribeAccount',
       params: [addr, tokens]
     }))
