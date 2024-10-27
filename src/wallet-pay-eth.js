@@ -299,6 +299,7 @@ class WalletPayEthereum extends WalletPay {
    * @param {number} outgoing.amount amount of payment
    * @param {string} outgoing.unit main or base
    * @param {string} outgoing.address address of recipient
+   * @param {string?} outgoing.data data to be passed
    * @param {string?} outgoing.sender address you are sending from
    * @param {number?} outgoing.gasLimit gas limit
    * @param {gasPrice?} outgoing.gasPrice gas price
@@ -313,7 +314,7 @@ class WalletPayEthereum extends WalletPay {
       const bal = await this.state.getBalances()
       sender = await bal.getAddrByBalance(amount)
     } else {
-      sender = await this.state.getAddress(outgoing.sender)
+      sender = await this._hdWallet.getAddress(outgoing.sender)
     }
 
     if (!sender) throw new Error('insufficient balance or invalid sender')
@@ -323,8 +324,10 @@ class WalletPayEthereum extends WalletPay {
       to: outgoing.address,
       value: amount.toBaseUnit(),
       gas: outgoing.gasLimit || (await web3.eth.getBlock()).gasLimit,
-      gasPrice: outgoing.gasPrice || await this._getGasPrice()
+      gasPrice: outgoing.gasPrice || await this._getGasPrice(),
+      data: outgoing.data
     }
+
     const signed = await web3.eth.accounts.signTransaction(tx, sender.privateKey)
 
     return { signed, sender, tx }
@@ -337,6 +340,7 @@ class WalletPayEthereum extends WalletPay {
   * @param {number} outgoing.amount Number of units being sent
   * @param {string} outgoing.unit unit of amount. main or base
   * @param {string} outgoing.address address of reciever
+  * @param {string?} outgoing.data data to be passed
   * @param {string=} outgoing.sender address of sender
   * @param {number=} outgoing.gasLimit ETH gas limit
   * @param {number=} outgoing.gasPrice ETH gas price
