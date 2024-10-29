@@ -15,7 +15,6 @@
 const { Currency } = require('lib-wallet')
 const { Web3 } = require('web3')
 const util = Web3.utils
-
 const BN = Currency._BN
 
 class Ethereum extends Currency {

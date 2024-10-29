@@ -241,7 +241,7 @@ class WalletPayEthereum extends WalletPay {
     await balances.setBal(addr, bal.confirmed)
   }
 
-  _storeTx (tx) {
+  async _storeTx (tx) {
     const data = {
       from: tx.from.toLowerCase(),
       to: tx.to.toLowerCase(),
@@ -251,7 +251,7 @@ class WalletPayEthereum extends WalletPay {
       gas: Number(tx.gas),
       gasPrice: Number(tx.gasPrice)
     }
-    this.state.storeTxHistory(data)
+    await this.state.storeTxHistory(data)
     return data
   }
 
