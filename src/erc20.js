@@ -69,7 +69,7 @@ class ERC20 extends EventEmitter {
   async updateTxEvent (res) {
     if (!res?.tx?.height) return
     const { addr, tx } = res
-    tx.value = new this.Currency(tx.value, 'main')
+    tx.value = new this.Currency(tx.value, 'base')
     await this.state.storeTxHistory(tx)
     const balances = await this.state.getBalances()
     const bal = await this.getBalance({}, res.addr)
@@ -96,7 +96,7 @@ class ERC20 extends EventEmitter {
       throw err
     }
 
-    return new this._ToBalance(new this.Currency(bal, 'main'))
+    return new this._ToBalance(new this.Currency(bal, 'base'))
   }
 
   async _getPastEvents (filter) {
@@ -107,7 +107,7 @@ class ERC20 extends EventEmitter {
         height: data.blockNumber.toString(),
         from: data.returnValues._from.toLowerCase(),
         to: data.returnValues._to.toLowerCase(),
-        value: new this.Currency(data.returnValues._value.toString(), 'main')
+        value: new this.Currency(data.returnValues._value.toString(), 'base')
       }
     })
   }
