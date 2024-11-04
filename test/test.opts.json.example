@@ -1,0 +1,6 @@
+{
+  "test_contract" : "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+  "web3": "ws://127.0.0.1:8545/",
+  "indexer": "http://127.0.0.1:8008/",
+  "indexerWs": "ws://127.0.0.1:8181/"
+}
