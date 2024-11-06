@@ -15,14 +15,11 @@
 
 const { test  } = require('brittle')
 const EthPay = require('../src/wallet-pay-eth.js')
-const KeyManager = require('../src/wallet-key-eth.js')
 const { WalletStoreHyperbee } = require('lib-wallet-store')
 const BIP39Seed = require('wallet-seed-bip39')
-const Provider = require('../src/provider.js')
+const { Provider, KeyManager, ERC20 } = require('lib-wallet-pay-evm')
+const { Erc20Currency, GasCurrency } = require('lib-wallet-util-evm')
 const { ethereum: TestNode } = require('wallet-lib-test-tools')
-const Ethereum = require('../src/eth.currency.js')
-const currencyFac = require('../src/erc20.currency.js')
-const ERC20 = require('../src/erc20.js')
 const opts = require('./test.opts.json')
 const fs = require('fs')
 
@@ -73,7 +70,7 @@ async function getTestnode () {
   return eth
 }
 
-const USDT = currencyFac({
+const USDT = Erc20Currency({
   name: 'USDT',
   base_name: 'USDT',
   contractAddress: opts.test_contract,
@@ -148,6 +145,12 @@ async function syncTest (t, sync) {
   const totalBal = await eth.getBalance({})
   t.ok(totalBal.confirmed.toMainUnit() === '0.00007', 'total balance matches')
 
+  const gas_token = {
+    name: 'ETH',
+    base_name: 'WEI',
+    decimal_places: 18
+  }
+
   const t0 = t.test('getTransactions')
 
   const amts = [amt1, amt2]
@@ -160,7 +163,7 @@ async function syncTest (t, sync) {
     }
     lastBlock = tx.height
     const amt = amts.shift()
-    t0.ok(new Ethereum(tx.value).toBaseUnit() === new Ethereum(amt, 'main').toBaseUnit(), 'amount matches')
+    t0.ok(new GasCurrency(tx.value, 'main', gas_token).toBaseUnit() === new GasCurrency(amt, 'main', gas_token).toBaseUnit(), 'amount matches')
   })
   t.ok(amts.length === 0, 'all expected  transactions found')
   t0.end()
