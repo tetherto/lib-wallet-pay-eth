@@ -8,16 +8,13 @@
   },
   "scripts": {
     "lint": "standard --fix",
-    "test:currency": "brittle test/currency.test.js",
     "test:pay": "brittle test/wallet-pay-eth.test.js"
   },
   "author": "rbndg",
   "license": "APACHE-2.0",
   "dependencies": {
-    "@ethereumjs/wallet": "^2.0.3",
-    "lib-wallet": "github:rbndg/lib-wallet",
-    "wallet-seed-bip39": "github:tetherto/lib-wallet-seed-bip39",
-    "web3": "^4.10.0"
+    "@flashbots/mev-share-client": "^0.7.13",
+    "lib-wallet-pay-evm": "github:itsdeka/lib-wallet-pay-evm"
   },
   "devDependencies": {
     "brittle": "^3.5.2",
