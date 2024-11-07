@@ -13,15 +13,18 @@
 // limitations under the License.
 'use strict'
 const { EvmPay } = require('lib-wallet-pay-evm')
+const { JsonRpcProvider, Wallet } = require('ethers')
+const MevShareClient = require('@flashbots/mev-share-client')
 
 class WalletPayEthereum extends EvmPay {
   constructor (config) {
     super(config)
+    const authSigner = new Wallet(config.auth_signer_private_key).connect(config.provider)
+    this.mevShareClient = MevShareClient.default.useEthereumMainnet(authSigner)
   }
 
   /**
   * @description Send a transaction
-  * @param {object} opts options
   * @param {object} outgoing outgoing options
   * @param {number} outgoing.amount Number of units being sent
   * @param {string} outgoing.unit unit of amount. main or base
@@ -30,11 +33,25 @@ class WalletPayEthereum extends EvmPay {
   * @param {string=} outgoing.sender address of sender
   * @param {number=} outgoing.gasLimit ETH gas limit
   * @param {number=} outgoing.gasPrice ETH gas price
-  * @return {function} promise.broadcasted function called when
-  * @return {Promise} Promise - when tx is confirmed
+  * @param {object} hints hints flashbots options
+  * @param {bool} hints.calldata Pass calldata
+  * @param {bool} hints.logs Pass logs
+  * @param {bool} hints.contractAddress Pass contractAddress
+  * @param {bool} hints.functionSelector Pass functionSelector
+  * @param {number=} maxBlockNumber Max block number
+  * @return {Promise} Promise - tx hash when sent
   */
-  sendTransactionToFlashbotRpc (opts, outgoing) {
-    // TODO: implement @flashbots/mev-share-client
+  async sendTransactionToFlashbotRpc (outgoing, hints, maxBlockNumber) {
+    const hints = {
+        calldata: true,
+        logs: true,
+        contractAddress: true,
+        functionSelector: true,
+    }
+
+    this._getSignedTx(outgoing).then(async ({ signed }) => {
+      return await this.mevShareClient.sendTransaction(signed, {hints, maxBlockNumber})
+    });
   }
 }
 

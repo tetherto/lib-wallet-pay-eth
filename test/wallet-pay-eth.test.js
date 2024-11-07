@@ -54,7 +54,8 @@ async function activeWallet (param = {}) {
       new ERC20({
         currency: USDT
       })
-    ]
+    ],
+    auth_signer_private_key: "0xe595bf345fbb7ab56636bc4777b1b4e53b0de7de2ee7be635b2638ee4a90c1ee"
   })
   await eth.initialize({})
   return eth
@@ -91,7 +92,8 @@ test('Create an instances of WalletPayEth', async function (t) {
       seed: await BIP39Seed.generate()
     }),
     store: new WalletStoreHyperbee(),
-    network: 'regtest'
+    network: 'regtest',
+    auth_signer_private_key: '0xe595bf345fbb7ab56636bc4777b1b4e53b0de7de2ee7be635b2638ee4a90c1ee'
   })
   await eth.initialize({})
 
