@@ -13,7 +13,7 @@
 // limitations under the License.
 'use strict'
 const { EvmPay } = require('lib-wallet-pay-evm')
-const { JsonRpcProvider, Wallet } = require('ethers')
+const { Wallet } = require('ethers')
 const MevShareClient = require('@flashbots/mev-share-client')
 
 class WalletPayEthereum extends EvmPay {
@@ -42,13 +42,6 @@ class WalletPayEthereum extends EvmPay {
   * @return {Promise} Promise - tx hash when sent
   */
   async sendTransactionToFlashbotRpc (outgoing, hints, maxBlockNumber) {
-    const hints = {
-        calldata: true,
-        logs: true,
-        contractAddress: true,
-        functionSelector: true,
-    }
-
     this._getSignedTx(outgoing).then(async ({ signed }) => {
       return await this.mevShareClient.sendTransaction(signed, {hints, maxBlockNumber})
     });
