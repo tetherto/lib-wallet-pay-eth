@@ -90,7 +90,10 @@ class WalletPayEthereum extends WalletPay {
   }
 
   _listenToEvents () {
-    this.provider.on('subscribeAccount', async (res) => {
+    this.provider.on('subscribeAccount', async (err, res) => {
+      if (err) {
+        return this.emit('provider-error', err)
+      }
       if (res.token) {
         this._eachToken(async (token) => {
           if (token.tokenContract.toLowerCase() !== res?.token.toLowerCase()) return
