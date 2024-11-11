@@ -15,13 +15,13 @@
   "license": "APACHE-2.0",
   "dependencies": {
     "@ethereumjs/wallet": "^2.0.3",
-    "lib-wallet": "github:tetherto/lib-wallet",
-    "wallet-seed-bip39": "github:tetherto/lib-wallet-seed-bip39",
+    "lib-wallet": "github:tetherto/lib-wallet#v0.0.1",
+    "wallet-seed-bip39": "github:tetherto/lib-wallet-seed-bip39#v0.0.1",
     "web3": "^4.10.0"
   },
   "devDependencies": {
     "brittle": "^3.5.2",
     "standard": "^17.1.0",
-    "wallet-lib-test-tools": "github:tetherto/wallet-lib-test-tools"
+    "wallet-lib-test-tools": "github:tetherto/wallet-lib-test-tools#v0.0.1"
   }
 }
