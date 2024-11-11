@@ -23,7 +23,6 @@ class Provider extends EventEmitter {
     this.web3 = new Web3(config.web3)
     this.indexerUri = config.indexer
     this.indexerws = config.indexerWs
-    this._subAccounts = []
   }
 
   async _callServer (method, param, path) {
@@ -85,7 +84,6 @@ class Provider extends EventEmitter {
   }
 
   async subscribeToAccount (addr, tokens) {
-    this._subAccounts.push([addr, tokens])
     this._ws.write(JSON.stringify({
       method: 'subscribeAccount',
       params: [addr, tokens]
