@@ -227,6 +227,17 @@ Example usage:
 const isValid = wallet.isValidAddress('0x1234...');
 console.log(isValid); // Output: true or false
 ```
+#### ✅ `getFundedTokenAddresses(opts)`
+* **Description**: returns addresses that have a balance
+* **Return Value**: A Map of addresses and balances
+* **Parameters**:
+  + `token`: A string for the token name
+
+Example usage:
+```javascript
+const addrBal = wallet.getFundedTokenAddresses({ token : 'USDT'});
+console.log(addBal); // Map(<addr> : { ETH balance, USDT Balance }
+```
 
 #### ⏸️ `pauseSync()`
 * **Description**: Pauses the synchronization process.
@@ -245,6 +256,54 @@ Example usage:
 ```javascript
 await wallet.resumeSync();
 ```
+
+## 🔔 Events
+
+The `EthereumPay` instance emits the following events:
+
+### 1. 🟢 `'ready'`
+
+* **Description**: Emitted when the wallet is fully initialized and ready for use.
+* **Callback Parameters**: None
+
+Example usage:
+```javascript
+ethPay.on('ready', () => {
+  console.log('Eth wallet is ready for use');
+});
+```
+
+### 2. 🔄 `'synced-path'`
+
+* **Description**: Emitted for each HD path that has been synced during the transaction synchronization process.
+* **Callback Parameters**: 
+  - `pathType` (String): Type of the path (e.g., 'external', 'internal')
+  - `path` (String): The HD path that was synced
+  - `hasTx` (Boolean): Whether the path has any transactions
+  - `progress` (Object): Sync progress information
+
+Example usage:
+```javascript
+ethPay.on('synced-path', (pathType, path, hasTx, progress) => {
+  console.log(`Synced path: ${pathType} ${path}, Has transactions: ${hasTx}`);
+  console.log('Sync progress:', progress);
+});
+```
+
+### 3. 💸 `'new-tx'`
+
+* **Description**: Emitted when a new transaction is detected for the wallet.
+* **Callback Parameters**: 
+  - `transaction` (Object): The new transaction object
+
+Example usage:
+```javascript
+ethPay.on('new-tx', (transaction) => {
+  console.log('New transaction detected:', transaction);
+});
+```
+
+
 
 ## 🛠️ Setup
 
