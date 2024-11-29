@@ -1,0 +1,172 @@
+
+hyperbee
+
+
+current_internal_pathm/44'/60'/0'/1/0
+
+
+current_external_pathm/44'/60'/0'/0/0
+
+
+account_index[["44'","0'"]]
+
+
+address_index[]
+	
+
+sync_state_internalF{"gap":0,"gapEnd":20,"path":"m/44'/60'/0'/1/0","_addrType":"internal"}
+
+
+
+sync_state_externalF{"gap":0,"gapEnd":20,"path":"m/44'/60'/0'/0/0","_addrType":"external"}
+
+	
+current_sync_addr_typenull
+
+	
+current_sync_addr_typeexternal
+
+	
+	sync_state_externalF{"gap":1,"gapEnd":20,"path":"m/44'/60'/0'/0/1","_addrType":"external"}
+
+	
+
+sync_state_externalF{"gap":2,"gapEnd":20,"path":"m/44'/60'/0'/0/2","_addrType":"external"}
+
+	
+sync_state_externalF{"gap":3,"gapEnd":20,"path":"m/44'/60'/0'/0/3","_addrType":"external"}
+
+	
+sync_state_externalF{"gap":4,"gapEnd":20,"path":"m/44'/60'/0'/0/4","_addrType":"external"}
+
+	
+sync_state_externalF{"gap":5,"gapEnd":20,"path":"m/44'/60'/0'/0/5","_addrType":"external"}
+
+	
+sync_state_externalF{"gap":6,"gapEnd":20,"path":"m/44'/60'/0'/0/6","_addrType":"external"}
+
+	
+sync_state_externalF{"gap":7,"gapEnd":20,"path":"m/44'/60'/0'/0/7","_addrType":"external"}
+
+	
+sync_state_externalF{"gap":8,"gapEnd":20,"path":"m/44'/60'/0'/0/8","_addrType":"external"}
+
+	
+sync_state_externalF{"gap":9,"gapEnd":20,"path":"m/44'/60'/0'/0/9","_addrType":"external"}
+
+	
+sync_state_externalH{"gap":10,"gapEnd":20,"path":"m/44'/60'/0'/0/10","_addrType":"external"}
+
+	
+sync_state_externalH{"gap":11,"gapEnd":20,"path":"m/44'/60'/0'/0/11","_addrType":"external"}
+
+	
+sync_state_externalH{"gap":12,"gapEnd":20,"path":"m/44'/60'/0'/0/12","_addrType":"external"}
+
+	
+sync_state_externalH{"gap":13,"gapEnd":20,"path":"m/44'/60'/0'/0/13","_addrType":"external"}
+
+	
+sync_state_externalH{"gap":14,"gapEnd":20,"path":"m/44'/60'/0'/0/14","_addrType":"external"}
+
+	
+sync_state_externalH{"gap":15,"gapEnd":20,"path":"m/44'/60'/0'/0/15","_addrType":"external"}
+
+	
+sync_state_externalH{"gap":16,"gapEnd":20,"path":"m/44'/60'/0'/0/16","_addrType":"external"}
+
+	
+sync_state_externalH{"gap":17,"gapEnd":20,"path":"m/44'/60'/0'/0/17","_addrType":"external"}
+
+	
+sync_state_externalH{"gap":18,"gapEnd":20,"path":"m/44'/60'/0'/0/18","_addrType":"external"}
+
+	
+sync_state_externalH{"gap":19,"gapEnd":20,"path":"m/44'/60'/0'/0/19","_addrType":"external"}
+
+	
+sync_state_externalH{"gap":20,"gapEnd":20,"path":"m/44'/60'/0'/0/20","_addrType":"external"}
+
+	
+sync_state_externalH{"gap":21,"gapEnd":20,"path":"m/44'/60'/0'/0/21","_addrType":"external"}
+
+	
+sync_state_internalF{"gap":0,"gapEnd":20,"path":"m/44'/60'/0'/1/0","_addrType":"internal"}
+
+	
+sync_state_externalF{"gap":0,"gapEnd":20,"path":"m/44'/60'/0'/0/0","_addrType":"external"}
+
+	
+ current_sync_addr_typenull
+
+	
+!current_sync_addr_typeinternal
+
+	
+!"sync_state_internalF{"gap":1,"gapEnd":20,"path":"m/44'/60'/0'/1/1","_addrType":"internal"}
+
+	
+!#sync_state_internalF{"gap":2,"gapEnd":20,"path":"m/44'/60'/0'/1/2","_addrType":"internal"}
+
+	
+!$sync_state_internalF{"gap":3,"gapEnd":20,"path":"m/44'/60'/0'/1/3","_addrType":"internal"}
+
+	
+!%sync_state_internalF{"gap":4,"gapEnd":20,"path":"m/44'/60'/0'/1/4","_addrType":"internal"}
+
+	
+!&sync_state_internalF{"gap":5,"gapEnd":20,"path":"m/44'/60'/0'/1/5","_addrType":"internal"}
+
+	
+!'sync_state_internalF{"gap":6,"gapEnd":20,"path":"m/44'/60'/0'/1/6","_addrType":"internal"}
+
+	
+!(sync_state_internalF{"gap":7,"gapEnd":20,"path":"m/44'/60'/0'/1/7","_addrType":"internal"}
+
+	
+!)sync_state_internalF{"gap":8,"gapEnd":20,"path":"m/44'/60'/0'/1/8","_addrType":"internal"}
+
+	
+!*sync_state_internalF{"gap":9,"gapEnd":20,"path":"m/44'/60'/0'/1/9","_addrType":"internal"}
+
+	
+!+sync_state_internalH{"gap":10,"gapEnd":20,"path":"m/44'/60'/0'/1/10","_addrType":"internal"}
+
+	
+!,sync_state_internalF{"gap":0,"gapEnd":20,"path":"m/44'/60'/0'/1/0","_addrType":"internal"}
+
+	
+!-,sync_state_externalF{"gap":0,"gapEnd":20,"path":"m/44'/60'/0'/0/0","_addrType":"external"}
+
+	
+.-,current_sync_addr_typenull
+
+	
+/-,current_sync_addr_typeexternal
+
+	
+/0,sync_state_externalF{"gap":1,"gapEnd":20,"path":"m/44'/60'/0'/0/1","_addrType":"external"}
+
+	
+/1,sync_state_externalF{"gap":2,"gapEnd":20,"path":"m/44'/60'/0'/0/2","_addrType":"external"}
+
+	
+/2,sync_state_externalF{"gap":3,"gapEnd":20,"path":"m/44'/60'/0'/0/3","_addrType":"external"}
+
+	
+/3,sync_state_externalF{"gap":4,"gapEnd":20,"path":"m/44'/60'/0'/0/4","_addrType":"external"}
+
+	
+/34sync_state_internalF{"gap":0,"gapEnd":20,"path":"m/44'/60'/0'/1/0","_addrType":"internal"}
+
+	
+/54sync_state_externalF{"gap":0,"gapEnd":20,"path":"m/44'/60'/0'/0/0","_addrType":"external"}
+
+	
+654current_sync_addr_typenull
+
+	
+754current_sync_addr_typeexternal
+
+	
+784sync_state_externalF{"gap":1,"gapEnd":20,"path":"m/44'/60'/0'/0/1","_addrType":"external"}
