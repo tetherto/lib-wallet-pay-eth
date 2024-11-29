@@ -15,6 +15,7 @@
 const { WalletPay, HdWallet } = require('lib-wallet')
 const Ethereum = require('./eth.currency')
 const StateDb = require('./state')
+const KeyManager = require('./wallet-key-eth.js')
 
 class WalletPayEthereum extends WalletPay {
   constructor (config) {
@@ -29,7 +30,7 @@ class WalletPayEthereum extends WalletPay {
   async initialize (ctx) {
     // @desc use default key manager
     if (!this.keyManager) {
-      this.keyManager = new (require('./wallet-key-eth.js'))({ network: this.network })
+      this.keyManager = new KeyManager({ network: this.network })
     }
 
     // @desc use default provider
