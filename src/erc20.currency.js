@@ -19,7 +19,7 @@ const BN = Currency._BN
 module.exports = function currencyFactory (opts) {
   const contract = {
     ABI: Erc20Abi,
-    address: opts.contractAddress
+    address: opts.contractAddress || opts.contract_address
   }
 
   class ERC20 extends Currency {
@@ -36,6 +36,16 @@ module.exports = function currencyFactory (opts) {
 
     static getContract () {
       return contract
+    }
+
+    static exportConfig() {
+      return {
+        tokenType: ERC20.token_type,
+        contract_address : contract.address,
+        decimal_places: opts.decimal_places,
+        name: opts.name,
+        base_name: opts.base_name
+      }
     }
 
     toBaseUnit () {
