@@ -15,7 +15,7 @@
   "license": "APACHE-2.0",
   "dependencies": {
     "@ethereumjs/wallet": "^2.0.3",
-    "lib-wallet": "github:rbndg/lib-wallet",
+    "lib-wallet": "github:rbndg/lib-wallet-main",
     "wallet-seed-bip39": "github:tetherto/lib-wallet-seed-bip39",
     "web3": "^4.10.0"
   },
