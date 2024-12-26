@@ -21,6 +21,9 @@ const MevShareClient = require('@flashbots/mev-share-client')
 class WalletPayEthereum extends EvmPay {
   constructor (config) {
     super(config)
+
+    this.config = config;
+
     this.web3 = config?.provider?.web3
 
     const authSigner = new Wallet(config.auth_signer_private_key).connect(config.provider)
