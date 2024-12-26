@@ -64,6 +64,12 @@ class WalletPayEthereum extends EvmPay {
   }
 
   async getBalance (opts, addr) {
+    if (opts.token) return this.callToken('getBalance', opts.token, [opts, addr])
+    if (!addr) {
+      const balances = await this.state.getBalances()
+      return new this._Balance(balances.getTotal())
+    }
+    
     const bal = await this.web3.eth.getBalance(addr)
 
     return await this._getBalance(opts, addr, bal)
