@@ -158,7 +158,7 @@ class WalletPayEthereum extends EvmPay {
       from: sender.address,
       to: outgoing.address,
       value: amount.toBaseUnit(),
-      gas: outgoing.gasLimit || (await web3.eth.getBlock()).gasLimit,
+      gas: outgoing.gasLimit,
       gasPrice: outgoing.gasPrice || await this._getGasPrice(),
       data: outgoing.data
     }
