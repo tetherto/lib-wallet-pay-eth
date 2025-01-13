@@ -154,11 +154,22 @@ class WalletPayEthereum extends EvmPay {
 
     if (!sender) throw new Error('insufficient balance or invalid sender')
 
+    let gasLimit = outgoing.gasLimit;
+
+    if (!gasLimit) {
+      gasLimit = await web3.eth.estimateGas({
+        from: sender.address,
+        to: outgoing.address,
+        value: amount.toBaseUnit(),
+        data: outgoing.data
+      })
+    }
+
     const tx = {
       from: sender.address,
       to: outgoing.address,
       value: amount.toBaseUnit(),
-      gas: outgoing.gasLimit || (await web3.eth.getBlock()).gasLimit,
+      gas: gasLimit,
       gasPrice: outgoing.gasPrice || await this._getGasPrice(),
       data: outgoing.data
     }
