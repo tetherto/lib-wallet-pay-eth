@@ -222,7 +222,6 @@ test("sendTransaction", async (t) => {
   await node.mine(1);
   t.comment(`sending eth to ${testAddr.address}`);
   await node.sendToAddress({ amount: 1.1, address: testAddr.address });
-  await eth.syncTransactions();
   const res = eth.sendTransaction(
     {},
     {
@@ -260,7 +259,6 @@ test("getActiveAddresses", async (t) => {
     const [addr, amount] = sends[s];
     await node.sendToAddress({ amount, address: addr.address });
   }
-  await eth.syncTransactions();
   const addrs = await eth.getActiveAddresses();
   let x = 0;
   for (const [addr, bal] of addrs) {
@@ -337,8 +335,6 @@ test("listen to last address on start", async (t) => {
       address: addr.address,
       amount: sendAmount,
     });
-
-    await eth.syncTransactions(tkopts);
     balance = await eth.getBalance(tkopts, addr.address);
     t.ok(
       balance.confirmed.toMainUnit() === sendAmount.toString(),
@@ -350,7 +346,6 @@ test("listen to last address on start", async (t) => {
       address: addr2.address,
       amount: sendAmount2,
     });
-    await eth.syncTransactions(tkopts);
     const total = await eth.getBalance(tkopts);
     t.ok(
       total.confirmed.toMainUnit() === (sendAmount + sendAmount2).toString(),
@@ -375,7 +370,6 @@ test("listen to last address on start", async (t) => {
       address: addr.address,
       amount: amt2,
     });
-
     await eth.syncTransactions(tkopts);
     const t0 = t.test("getTransactions");
 
@@ -458,7 +452,6 @@ test("listen to last address on start", async (t) => {
       const [addr, amount] = sends[s];
       await node.sendToken({ amount, address: addr.address });
     }
-    await eth.syncTransactions(tkopts);
     const addrs = await eth.getActiveAddresses(tkopts);
     let x = 0;
     for (const [addr, bal] of addrs) {
@@ -484,8 +477,6 @@ test("listen to last address on start", async (t) => {
       await node.sendToAddress({ amount: 1, address: addr.address });
       await node.sendToken({ amount, address: addr.address });
     }
-    await eth.syncTransactions();
-    await eth.syncTransactions(tkopts);
     const addrs = await eth.getFundedTokenAddresses(tkopts);
     let x = 0;
     for (const [addr, bal] of addrs) {
