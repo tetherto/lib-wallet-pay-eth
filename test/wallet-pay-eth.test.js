@@ -113,7 +113,6 @@ test("Create an instances of WalletPayEth", async function (t) {
 
   t.ok(eth.ready, "instance is ready");
   t.comment("destoying instance");
-  await eth.destroy();
 });
 
 test("getNewAddress", async function (t) {
@@ -132,7 +131,6 @@ test("getNewAddress", async function (t) {
   }
   const add = await eth.getNewAddress();
   t.ok(add.path === "m/44'/60'/0'/0/1", "address path is incremented");
-  await eth.destroy();
 });
 
 async function syncTest(t, sync) {
@@ -148,7 +146,6 @@ async function syncTest(t, sync) {
     await node.sendToAddress({ address: addr.address, amount: amt1 });
     t.comment("send eth to address ", addr2.address);
     await node.sendToAddress({ address: addr2.address, amount: amt2 });
-    await node.mine();
     t.comment("sync addresses");
     await eth.syncTransactions();
   } else {
@@ -156,7 +153,6 @@ async function syncTest(t, sync) {
       setTimeout(async () => {
         t.comment("send amt1 to address ", addr.address);
         await node.sendToAddress({ address: addr.address, amount: amt1 });
-        await node.mine();
       }, 1000); // 1 second timeout
     });
 
@@ -166,7 +162,6 @@ async function syncTest(t, sync) {
       setTimeout(async () => {
         t.comment("send amt2 to address ", addr2.address);
         await node.sendToAddress({ address: addr2.address, amount: amt2 });
-        await node.mine();
       }, 1000); // 1 second timeout
     });
 
@@ -203,7 +198,6 @@ async function syncTest(t, sync) {
   });
   t.ok(amts.length === 0, "all expected  transactions found");
   t0.end();
-  await eth.destroy();
 }
 
 test("new wallet syncTransactions", async (t) => {
@@ -219,7 +213,6 @@ test("sendTransaction", async (t) => {
   const eth = await activeWallet({ newWallet: false });
   const nodeAddr = await node.getNewAddress();
   const testAddr = await eth.getNewAddress();
-  await node.mine(1);
   t.comment(`sending eth to ${testAddr.address}`);
   await node.sendToAddress({ amount: 1.1, address: testAddr.address });
   const res = eth.sendTransaction(
@@ -245,7 +238,6 @@ test("sendTransaction", async (t) => {
   t.ok(tx.confirmations === 1n, "transaction is confirmed");
   t.ok(tx.latestBlockHash, "tx has block hash");
   if (!bcast) throw new Error("broadcast call back not called");
-  await eth.destroy();
 });
 
 test("getActiveAddresses", async (t) => {
@@ -392,7 +384,6 @@ test("listen to last address on start", async (t) => {
 
     t.ok(amts.length === 0, "all expected  transactions found");
     t0.end();
-    await eth.destroy();
   });
 
   test("ERC20: detect transactions", { skip }, async (t) => {
@@ -415,7 +406,6 @@ test("listen to last address on start", async (t) => {
           address: addr.address,
           amount: amt2,
         });
-        await node.mine();
       }, 1000); // 1 second timeout
     });
 
@@ -438,7 +428,6 @@ test("listen to last address on start", async (t) => {
     });
     t.ok(amts.length === 0, "all expected  transactions found");
     t0.end();
-    await eth.destroy();
   });
 
   test("ERC20: getActiveAddresses", { skip }, async (t) => {
