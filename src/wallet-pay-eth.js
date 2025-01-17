@@ -178,8 +178,9 @@ class WalletPayEthereum extends EvmPay {
   * @return {Promise} Promise - when tx is confirmed
   */
   sendTransaction (opts, outgoing) {
-    if (opts.token) 
-      return this.callToken('sendTransactions', opts.token, [opts, outgoing])
+    const _getSignedTxWrapper = (outgoing) => this.callToken('_getSignedTx', opts.token, [outgoing]) 
+
+    const getSignedTx = opts.token ? _getSignedTxWrapper : this._getSignedTx
 
     let notify
 
@@ -190,7 +191,7 @@ class WalletPayEthereum extends EvmPay {
           this.updateBalances(opts)
       )
         .then(() => 
-          this._getSignedTx(outgoing).then(({ signed }) => {
+          getSignedTx.apply(this, [outgoing]).then(({ signed }) => {
             this.provider.web3.eth.sendSignedTransaction(signed.rawTransaction)
               .on('receipt', (tx) => { if (notify) return notify(tx) })
               .once('confirmation', (tx) => { resolve(tx)})
