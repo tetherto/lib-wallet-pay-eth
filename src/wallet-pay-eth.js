@@ -24,6 +24,8 @@ class WalletPayEthereum extends EvmPay {
 
     this.web3 = config?.provider?.web3
 
+    this.startSyncTxFromBlock = 0
+
     const authSigner = new Wallet(config.auth_signer_private_key).connect(config.provider)
 
     this.mevShareClient = MevShareClient.default.useEthereumMainnet(authSigner)
@@ -61,10 +63,10 @@ class WalletPayEthereum extends EvmPay {
     })
   }
 
-  async _syncPath (addr, signal) {
+  async _syncPath (addr, signal, startFrom) {
     const provider = this.provider
     const path = addr.path
-    const tx = await provider.getTransactionsByAddress({ address: addr.address })
+    const tx = await provider.getTransactionsByAddress({ address: addr.address, fromBlock: startFrom })
     if (tx.length === 0) {
       this.emit('synced-path', path)
       return signal.noTx
@@ -98,25 +100,30 @@ class WalletPayEthereum extends EvmPay {
       state = await this.callToken('getState', opts.token, [])
     }
 
-    if (opts?.reset) {
+    if (opts.reset) {
       await state._hdWallet.resetSyncState()
       await state.reset()
     }
 
+    const latestBlock = Number(await this.web3.eth.getBlockNumber())
+
     await state._hdWallet.eachAccount(async (syncState, signal) => {
       if (this._halt) return signal.stop
       const { addr } = keyManager.addrFromPath(syncState.path)
-      if (opts.token) return await this.callToken('syncPath', opts.token, [addr, signal])
-      const res = await this._syncPath(addr, signal)
+      if (opts.token) return await this.callToken('syncPath', opts.token, [addr, signal, this.startSyncTxFromBlock])
+      const res = await this._syncPath(addr, signal, this.startSyncTxFromBlock)
       this.emit('synced-path', syncState._addrType, syncState.path, res === signal.hasTx, syncState.toJSON())
       return res
     })
+
+    this.startSyncTxFromBlock = latestBlock
 
     if (this._halt) {
       this.emit('sync-end')
       this.resumeSync()
       return
     }
+
     this.resumeSync()
     this.emit('sync-end')
   }
@@ -185,8 +192,9 @@ class WalletPayEthereum extends EvmPay {
   * @return {Promise} Promise - when tx is confirmed
   */
   sendTransaction (opts, outgoing) {
-    if (opts.token) 
-      return this.callToken('sendTransactions', opts.token, [opts, outgoing])
+    const _getSignedTxWrapper = (outgoing) => this.callToken('_getSignedTx', opts.token, [outgoing]) 
+
+    const getSignedTx = opts.token ? _getSignedTxWrapper : this._getSignedTx
 
     let notify
 
@@ -197,7 +205,7 @@ class WalletPayEthereum extends EvmPay {
           this.updateBalances(opts)
       )
         .then(() => 
-          this._getSignedTx(outgoing).then(({ signed }) => {
+          getSignedTx.apply(this, [outgoing]).then(({ signed }) => {
             this.provider.web3.eth.sendSignedTransaction(signed.rawTransaction)
               .on('receipt', (tx) => { if (notify) return notify(tx) })
               .once('confirmation', (tx) => { resolve(tx)})
