@@ -15,8 +15,8 @@
   "dependencies": {
     "@ethereumjs/wallet": "^2.0.3",
     "@flashbots/mev-share-client": "^0.7.13",
-    "lib-wallet-pay-evm": "github:itsdeka/lib-wallet-pay-evm",
-    "lib-wallet-util-evm": "github:itsdeka/lib-wallet-util-evm"
+    "lib-wallet-pay-evm": "github:tetherto/lib-wallet-pay-evm",
+    "lib-wallet-util-evm": "github:tetherto/lib-wallet-util-evm"
   },
   "devDependencies": {
     "brittle": "^3.5.2",
