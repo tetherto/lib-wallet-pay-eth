@@ -84,7 +84,8 @@ class WalletPayEthereum extends EvmPay {
       height: tx.blockNumber,
       txid: tx.hash,
       gas: Number(tx.gas),
-      gasPrice: Number(tx.gasPrice)
+      maxPriorityFeePerGas: Number(tx.maxPriorityFeePerGas),
+      maxFeePerGas: Number(tx.maxFeePerGas)
     }
     await this.state.storeTxHistory(data)
     return data
@@ -124,6 +125,10 @@ class WalletPayEthereum extends EvmPay {
     return this.provider.web3.eth.getGasPrice()
   }
 
+  async _getMaxPriorityFeePerGas () {
+    return this.provider.web3.eth.getMaxPriorityFeePerGas()
+  }
+
   async _getSignedTx (outgoing) {
     const { web3 } = this.provider
     const amount = new GasCurrency(outgoing.amount, outgoing.unit)
@@ -154,7 +159,8 @@ class WalletPayEthereum extends EvmPay {
       to: outgoing.address,
       value: amount.toBaseUnit(),
       gas: gasLimit,
-      gasPrice: outgoing.gasPrice || await this._getGasPrice(),
+      maxFeePerGas: outgoing.maxFeePerGas || await this._getGasPrice(),
+      maxPriorityFeePerGas: outgoing.maxPriorityFeePerGas || await this._getMaxPriorityFeePerGas(),
       data: outgoing.data
     }
 
@@ -173,7 +179,8 @@ class WalletPayEthereum extends EvmPay {
   * @param {string?} outgoing.data data to be passed
   * @param {string=} outgoing.sender address of sender
   * @param {number=} outgoing.gasLimit ETH gas limit
-  * @param {number=} outgoing.gasPrice ETH gas price
+  * @param {number=} outgoing.maxFeePerGas ETH gas price
+  * @param {number=} outgoing.maxPriorityFeePerGas ETH priority gas price
   * @return {function} promise.broadcasted function called when
   * @return {Promise} Promise - when tx is confirmed
   */
@@ -210,7 +217,8 @@ class WalletPayEthereum extends EvmPay {
   * @param {string?} outgoing.data data to be passed
   * @param {string=} outgoing.sender address of sender
   * @param {number=} outgoing.gasLimit ETH gas limit
-  * @param {number=} outgoing.gasPrice ETH gas price
+  * @param {number=} outgoing.maxFeePerGas ETH gas price
+  * @param {number=} outgoing.maxPriorityFeePerGas ETH gas price
   * @param {object} hints hints flashbots options
   * @param {bool} hints.calldata Pass calldata
   * @param {bool} hints.logs Pass logs
