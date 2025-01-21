@@ -15,8 +15,6 @@
 'use strict'
 const { EvmPay } = require('lib-wallet-pay-evm')
 const { GasCurrency } = require('lib-wallet-util-evm')
-const { Wallet } = require('ethers')
-const MevShareClient = require('@flashbots/mev-share-client')
 
 class WalletPayEthereum extends EvmPay {
   constructor (config) {
@@ -25,10 +23,6 @@ class WalletPayEthereum extends EvmPay {
     this.web3 = config?.provider?.web3
 
     this.startSyncTxFromBlock = 0
-
-    const authSigner = new Wallet(config.auth_signer_private_key).connect(config.provider)
-
-    this.mevShareClient = MevShareClient.default.useEthereumMainnet(authSigner)
   }
 
   async initialize (ctx) {
@@ -214,31 +208,6 @@ class WalletPayEthereum extends EvmPay {
     })
     p.broadcasted = (fn) => { notify = fn }
     return p
-  }
-
-  /**
-  * @description Send a transaction
-  * @param {object} outgoing outgoing options
-  * @param {number} outgoing.amount Number of units being sent
-  * @param {string} outgoing.unit unit of amount. main or base
-  * @param {string} outgoing.address address of reciever
-  * @param {string?} outgoing.data data to be passed
-  * @param {string=} outgoing.sender address of sender
-  * @param {number=} outgoing.gasLimit ETH gas limit
-  * @param {number=} outgoing.maxFeePerGas ETH gas price
-  * @param {number=} outgoing.maxPriorityFeePerGas ETH gas price
-  * @param {object} hints hints flashbots options
-  * @param {bool} hints.calldata Pass calldata
-  * @param {bool} hints.logs Pass logs
-  * @param {bool} hints.contractAddress Pass contractAddress
-  * @param {bool} hints.functionSelector Pass functionSelector
-  * @param {number=} maxBlockNumber Max block number
-  * @return {Promise} Promise - tx hash when sent
-  */
-  async sendTransactionToFlashbotRpc (outgoing, hints, maxBlockNumber) {
-    this._getSignedTx(outgoing).then(async ({ signed }) => {
-      return await this.mevShareClient.sendTransaction(signed, {hints, maxBlockNumber})
-    });
   }
 
   async getBalanceFromProvider (addr) {

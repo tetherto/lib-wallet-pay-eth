@@ -14,7 +14,6 @@
   "license": "APACHE-2.0",
   "dependencies": {
     "@ethereumjs/wallet": "^2.0.3",
-    "@flashbots/mev-share-client": "^0.7.13",
     "lib-wallet-pay-evm": "github:tetherto/lib-wallet-pay-evm",
     "lib-wallet-util-evm": "github:tetherto/lib-wallet-util-evm"
   },
