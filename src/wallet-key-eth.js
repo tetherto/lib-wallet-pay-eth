@@ -14,7 +14,7 @@
 'use strict'
 const { hdkey: { EthereumHDKey: ethhd } } = require('@ethereumjs/wallet')
 
-class WalletKeyEth {
+class WalletKeyEvm {
   constructor (config = {}) {
     if (config.seed) {
       this.seed = config.seed
@@ -65,4 +65,4 @@ class WalletKeyEth {
   }
 }
 
-module.exports = WalletKeyEth
+module.exports = WalletKeyEvm
