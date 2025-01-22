@@ -15,7 +15,7 @@
 'use strict'
 const { EvmPay } = require('lib-wallet-pay-evm')
 const { GasCurrency } = require('lib-wallet-util-evm')
-const KM = 
+const KM = require('./wallet-key-eth.js')
 
 class WalletPayEthereum extends EvmPay {
   constructor (config) {
