@@ -15,6 +15,7 @@
 'use strict'
 const { EvmPay } = require('lib-wallet-pay-evm')
 const { GasCurrency } = require('lib-wallet-util-evm')
+const KM = require('./wallet-key-eth.js')
 
 class WalletPayEthereum extends EvmPay {
   constructor (config) {
@@ -26,8 +27,9 @@ class WalletPayEthereum extends EvmPay {
   }
 
   async initialize (ctx) {
+    const km = new KM({ network: this.network })
     return await this._initialize(ctx, {
-      defaultKeyManager: new (require('./wallet-key-eth.js'))({ network: this.network }),
+      defaultKeyManager: km,
       providerConfig: {
         web3: this.config.web3,
         indexer: this.config.indexer_rpc,
