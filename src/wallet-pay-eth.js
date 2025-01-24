@@ -23,7 +23,7 @@ class WalletPayEthereum extends EvmPay {
 
     this.web3 = config?.provider?.web3
 
-    this.startSyncTxFromBlock = 0
+    this.startSyncTxFromBlock = 6810041
   }
 
   async initialize (ctx) {
