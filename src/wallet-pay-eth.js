@@ -16,6 +16,7 @@
 const { EvmPay } = require('lib-wallet-pay-evm')
 const { GasCurrency } = require('lib-wallet-util-evm')
 const KM = require('./wallet-key-eth.js')
+const FeeEstimate = require('./fee-estimate.js')
 
 class WalletPayEthereum extends EvmPay {
   constructor (config) {
@@ -24,6 +25,8 @@ class WalletPayEthereum extends EvmPay {
     this.web3 = config?.provider?.web3
 
     this.startSyncTxFromBlock = 6810041
+
+    this._feeEst = new FeeEstimate()
   }
 
   async initialize (ctx) {
@@ -214,6 +217,10 @@ class WalletPayEthereum extends EvmPay {
 
   async getBalanceFromProvider (addr) {
     return await this.web3.eth.getBalance(addr)
+  }
+
+  async getFeeEstimate () {
+    return this._feeEst.getFeeEstimate()
   }
 
   isValidAddress (address) {
