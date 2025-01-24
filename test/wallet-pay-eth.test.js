@@ -35,7 +35,7 @@ async function activeWallet(param = {}) {
       indexer: opts.indexer,
       indexerWs: opts.indexerWs,
     });
-    await provider.init();
+    await provider.connect();
   }
 
   const store = new WalletStoreHyperbee({
