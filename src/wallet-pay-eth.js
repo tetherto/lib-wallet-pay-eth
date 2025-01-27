@@ -41,14 +41,15 @@ class WalletPayEthereum extends EvmPay {
       walletConfig: {
         name: 'hdwallet-eth',
         coinType: "60'",
-        purpose: "44'"
+        purpose: "44'",
+        gapLimit: 5
       },
       stateConfig: {
-        name: "state-eth"
+        name: 'state-eth'
       },
       newTxCallback: async (res, token) => {
         const tx = await token.updateTxEvent(res)
-        
+
         return {
           token: token.name,
           address: res.address,
@@ -106,7 +107,7 @@ class WalletPayEthereum extends EvmPay {
 
     const latestBlock = Number(await this.web3.eth.getBlockNumber())
 
-    await state._hdWallet.eachAccount(async (syncState, signal) => {
+    await state._hdWallet.eachExtAccount(async (syncState, signal) => {
       if (this._halt) return signal.stop
       const { addr } = keyManager.addrFromPath(syncState.path)
       if (opts.token) return await this.callToken('syncPath', opts.token, [addr, signal, this.startSyncTxFromBlock])
@@ -149,7 +150,7 @@ class WalletPayEthereum extends EvmPay {
 
     if (!sender) throw new Error('insufficient balance or invalid sender')
 
-    let gasLimit = outgoing.gasLimit;
+    let gasLimit = outgoing.gasLimit
 
     if (!gasLimit) {
       gasLimit = await web3.eth.estimateGas({
@@ -191,7 +192,7 @@ class WalletPayEthereum extends EvmPay {
   * @return {Promise} Promise - when tx is confirmed
   */
   sendTransaction (opts, outgoing) {
-    const _getSignedTxWrapper = (outgoing) => this.callToken('_getSignedTx', opts.token, [outgoing]) 
+    const _getSignedTxWrapper = (outgoing) => this.callToken('_getSignedTx', opts.token, [outgoing])
 
     const getSignedTx = opts.token ? _getSignedTxWrapper : this._getSignedTx
 
@@ -199,15 +200,15 @@ class WalletPayEthereum extends EvmPay {
 
     const p = new Promise((resolve, reject) => {
       (
-        outgoing.sender ?
-          this.updateBalance(opts, outgoing.sender) :
-          this.updateBalances(opts)
+        outgoing.sender
+          ? this.updateBalance(opts, outgoing.sender)
+          : this.updateBalances(opts)
       )
-        .then(() => 
+        .then(() =>
           getSignedTx.apply(this, [outgoing]).then(({ signed }) => {
             this.provider.web3.eth.sendSignedTransaction(signed.rawTransaction)
               .on('receipt', (tx) => { if (notify) return notify(tx) })
-              .once('confirmation', (tx) => { resolve(tx)})
+              .once('confirmation', (tx) => { resolve(tx) })
               .on('error', (err) => reject(err))
           }))
     })
