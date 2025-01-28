@@ -14,14 +14,25 @@
 
 'use strict'
 const { EvmPay } = require('lib-wallet-pay-evm')
-const { GasCurrency } = require('lib-wallet-util-evm')
+const { GasCurrencyBase } = require('lib-wallet-util-evm')
 const KM = require('./wallet-key-eth.js')
+
+class Ethereum extends GasCurrencyBase {
+  constructor () {
+    const opts = arguments[2] || {}
+    opts.name = 'ETH'
+    opts.base_name = 'WEI'
+    opts.decimal_places = 18
+    super(...arguments)
+  }
+}
 
 class WalletPayEthereum extends EvmPay {
   constructor (config) {
+    config.GasCurrency = Ethereum
     super(config)
 
-    this.web3 = config?.provider?.web3
+    this.web3 = config?.provider?.web
 
     this.startSyncTxFromBlock = 6810041
   }
@@ -79,7 +90,7 @@ class WalletPayEthereum extends EvmPay {
     const data = {
       from: tx.from.toLowerCase(),
       to: tx.to.toLowerCase(),
-      value: new GasCurrency(tx.value, 'base', this.gas_token),
+      value: new Ethereum(tx.value, 'base', this.gas_token),
       height: tx.blockNumber,
       txid: tx.hash,
       gas: Number(tx.gas),
@@ -135,7 +146,7 @@ class WalletPayEthereum extends EvmPay {
 
   async _getSignedTx (outgoing) {
     const { web3 } = this.provider
-    const amount = new GasCurrency(outgoing.amount, outgoing.unit)
+    const amount = new Ethereum(outgoing.amount, outgoing.unit)
     let sender
 
     if (!outgoing.sender) {
