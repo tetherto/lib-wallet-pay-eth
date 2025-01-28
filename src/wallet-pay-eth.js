@@ -21,10 +21,13 @@ const FeeEstimate = require('./fee-estimate.js')
 class Ethereum extends GasCurrencyBase {
   constructor () {
     const opts = arguments[2] || {}
-    opts.name = 'ETH'
-    opts.base_name = 'WEI'
-    opts.decimal_places = 18
+    opts.name = opts.name ||  'ETH'
+    opts.base_name = opts.base_name || 'WEI'
+    opts.decimal_places = opts.decimal_places || 18
     super(...arguments)
+    this.name = opts.name
+    this.base_name = opts.base_name
+    this.decimal_places = opts.decimal_places
   }
 }
 
@@ -93,7 +96,7 @@ class WalletPayEthereum extends EvmPay {
     const data = {
       from: tx.from.toLowerCase(),
       to: tx.to.toLowerCase(),
-      value: new Ethereum(tx.value, 'base', this.gas_token),
+      value: new Ethereum(tx.value, 'base'), 
       height: tx.blockNumber,
       txid: tx.hash,
       gas: Number(tx.gas),
