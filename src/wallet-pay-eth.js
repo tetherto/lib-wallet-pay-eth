@@ -112,7 +112,7 @@ class WalletPayEthereum extends EvmPay {
     const txEntry = new TxEntry({
       from: tx.from.toLowerCase(),
       to: tx.to.toLowerCase(),
-      value: new Ethereum(tx.value, 'base', this.gas_token),
+      value: new Ethereum(tx.value, 'base'), 
       height: tx.blockNumber,
       txid: tx.hash,
       from_address: tx.from.toLowerCase(),
