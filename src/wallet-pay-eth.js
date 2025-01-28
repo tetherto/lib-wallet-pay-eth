@@ -42,7 +42,6 @@ class Ethereum extends GasCurrencyBase {
   }
 }
 
-
 class WalletPayEthereum extends EvmPay {
   constructor (config) {
     config.GasCurrency = Ethereum
