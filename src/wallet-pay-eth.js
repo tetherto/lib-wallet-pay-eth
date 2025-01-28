@@ -29,6 +29,11 @@ class Ethereum extends GasCurrencyBase {
     this.base_name = opts.base_name
     this.decimal_places = opts.decimal_places
   }
+
+  static IsEthereum (v) {
+    if (!(v instanceof Ethereum)) throw new Error('Amount must be an instance of Ethereum')
+    return true
+  }
 }
 
 class WalletPayEthereum extends EvmPay {
