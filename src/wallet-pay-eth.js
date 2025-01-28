@@ -34,6 +34,10 @@ class Ethereum extends GasCurrencyBase {
     if (!(v instanceof Ethereum)) throw new Error('Amount must be an instance of Ethereum')
     return true
   }
+
+  isUnitOf (amount) {
+    return Ethereum.isEthereum(amount)
+  }
 }
 
 class WalletPayEthereum extends EvmPay {
