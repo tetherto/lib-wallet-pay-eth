@@ -13,10 +13,12 @@
 // limitations under the License.
 
 'use strict'
+const { WalletPay } = require('lib-wallet')
 const { EvmPay } = require('lib-wallet-pay-evm')
 const { GasCurrencyBase } = require('lib-wallet-util-evm')
 const KM = require('./wallet-key-eth.js')
 const FeeEstimate = require('./fee-estimate.js')
+const TxEntry = WalletPay.TxEntry
 
 class Ethereum extends GasCurrencyBase {
   constructor () {
@@ -40,27 +42,6 @@ class Ethereum extends GasCurrencyBase {
   }
 }
 
-class Ethereum extends GasCurrencyBase {
-  constructor () {
-    super(...arguments)
-    const opts = arguments[2] || {}
-    opts.name = opts.name ||  'ETH'
-    opts.base_name = opts.base_name || 'WEI'
-    opts.decimal_places = opts.decimal_places || 18
-    this.name = opts.name
-    this.base_name = opts.base_name
-    this.decimal_places = opts.decimal_places
-  }
-
-  static IsEthereum (v) {
-    if (!(v instanceof Ethereum)) throw new Error('Amount must be an instance of Ethereum')
-    return true
-  }
-
-  isUnitOf (amount) {
-    return Ethereum.isEthereum(amount)
-  }
-}
 
 class WalletPayEthereum extends EvmPay {
   constructor (config) {
@@ -128,18 +109,21 @@ class WalletPayEthereum extends EvmPay {
   }
 
   async _storeTx (tx) {
-    const data = {
-      from: tx.from.toLowerCase(),
-      to: tx.to.toLowerCase(),
-      value: new Ethereum(tx.value, 'base'), 
-      height: tx.blockNumber,
+    const txEntry = new TxEntry({
       txid: tx.hash,
-      gas: Number(tx.gas),
-      maxPriorityFeePerGas: Number(tx.maxPriorityFeePerGas),
-      maxFeePerGas: Number(tx.maxFeePerGas)
-    }
-    await this.state.storeTxHistory(data)
-    return data
+      from_address: tx.from.toLowerCase(),
+      to_address: tx.to.toLowerCase(),
+      amount: new Ethereum(tx.value, 'base'),
+      fee: new Ethereum(tx.gas * tx.gasPrice, 'base'),
+      fee_rate: new Ethereum(tx.gasPrice, 'base'),
+      height: Number(tx.blockNumber),
+      direction: await this._getDirection(tx),
+      currency: "ETH"
+    })
+    
+    await this.state.storeTxHistory(txEntry)
+
+    return txEntry
   }
 
   async syncTransactions (opts = {}) {

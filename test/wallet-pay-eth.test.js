@@ -96,7 +96,7 @@ test("Create an instances of WalletPayEth", async function (t) {
     indexer: opts.indexer,
     indexerWs: opts.indexerWs,
   });
-  await provider.init();
+  await provider.connect();
   const eth = new EthPay({
     asset_name: "ETH",
     asset_base_name: "wei",
@@ -187,7 +187,7 @@ async function syncTest(t, sync) {
     lastBlock = tx.height;
     const amt = amts.shift();
     t0.ok(
-      new GasCurrency(tx.value).toBaseUnit() ===
+      new GasCurrency(...tx.amount).toBaseUnit() ===
         new GasCurrency(amt, "main", {
           name: "ETH",
           base_name: "wei",
@@ -279,7 +279,7 @@ test("listen to last address on start", async (t) => {
       "contract matches"
     );
   };
-  await provider.init();
+  await provider.connect();
 
   const eth = await activeWallet({
     newWallet: true,
@@ -377,7 +377,7 @@ test("listen to last address on start", async (t) => {
       const amt = amts.shift();
 
       t0.ok(
-        Number(tx.value[0]) === Number(amt),
+        Number(tx.amount[0]) === Number(amt),
         "amount matches"
       );
     });
@@ -424,7 +424,7 @@ test("listen to last address on start", async (t) => {
       lastBlock = tx.height;
       const amt = amts.shift();
 
-      t0.ok(Number(tx.value[0]) === Number(amt), "amount matches");
+      t0.ok(Number(tx.amount[0]) === Number(amt), "amount matches");
     });
     t.ok(amts.length === 0, "all expected  transactions found");
     t0.end();
