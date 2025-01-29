@@ -98,7 +98,11 @@ class WalletPayEthereum extends EvmPay {
     for (const t of tx) {
       await this._storeTx(t)
     }
-    return tx.length > 0 ? signal.hasTx : signal.noTx
+    if(tx.length > 0) { 
+      await this._hdWallet.addAddress(addr)
+      return signal.hasTx
+    }
+    return signal.noTx
   }
 
   async _storeTx (tx) {
