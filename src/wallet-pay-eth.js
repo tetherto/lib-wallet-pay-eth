@@ -19,11 +19,11 @@ const KM = require('./wallet-key-eth.js')
 
 class Ethereum extends GasCurrencyBase {
   constructor () {
+    super(...arguments)
     const opts = arguments[2] || {}
     opts.name = opts.name ||  'ETH'
     opts.base_name = opts.base_name || 'WEI'
     opts.decimal_places = opts.decimal_places || 18
-    super(...arguments)
     this.name = opts.name
     this.base_name = opts.base_name
     this.decimal_places = opts.decimal_places
