@@ -175,17 +175,12 @@ async function syncTest(t, sync) {
   t.ok(totalBal.confirmed.toMainUnit() === "0.00007", "total balance matches");
 
   const t0 = t.test("getTransactions");
-
   const amts = [amt1, amt2];
-  let lastBlock;
-  await eth.getTransactions({}, (block) => {
-    t0.ok(block.length === 1, "Get block tx length 1");
-    const tx = block.pop();
-    if (lastBlock) {
-      t.ok(tx.height > lastBlock, "block number increasing");
-    }
-    lastBlock = tx.height;
+  const txs = await eth.getTransactions({});
+
+  for (const tx of txs) {
     const amt = amts.shift();
+
     t0.ok(
       new GasCurrency(...tx.amount).toBaseUnit() ===
         new GasCurrency(amt, "main", {
@@ -195,8 +190,9 @@ async function syncTest(t, sync) {
         }).toBaseUnit(),
       "amount matches"
     );
-  });
-  t.ok(amts.length === 0, "all expected  transactions found");
+  }
+
+  t0.ok(amts.length === 0, "all expected  transactions found");
   t0.end();
 }
 
@@ -363,24 +359,16 @@ test("listen to last address on start", async (t) => {
       amount: amt2,
     });
     await eth.syncTransactions(tkopts);
-    const t0 = t.test("getTransactions");
 
+    const t0 = t.test("getTransactions");
     const amts = [sendAmount, amt2];
-    let lastBlock;
-    await eth.getTransactions(tkopts, (block) => {
-      t0.ok(block.length === 1, "block tx length 1");
-      const tx = block.pop();
-      if (lastBlock) {
-        t.ok(tx.height > lastBlock, "block number increasing");
-      }
-      lastBlock = tx.height;
+    const txs = await eth.getTransactions(tkopts);
+
+    for (const tx of txs) {
       const amt = amts.shift();
 
-      t0.ok(
-        Number(tx.amount[0]) === Number(amt),
-        "amount matches"
-      );
-    });
+      t0.ok(Number(tx.amount[0]) === Number(amt), "amount matches");
+    }
 
     t.ok(amts.length === 0, "all expected  transactions found");
     t0.end();
@@ -412,20 +400,15 @@ test("listen to last address on start", async (t) => {
     await Promise.race([eth._onNewTx(), minePromise]);
 
     const t0 = t.test("getTransactions");
-
     const amts = [sendAmount, amt2];
-    let lastBlock;
-    await eth.getTransactions(tkopts, (block) => {
-      t0.ok(block.length === 1, "block tx length 1");
-      const tx = block.pop();
-      if (lastBlock) {
-        t.ok(tx.height > lastBlock, "block number increasing");
-      }
-      lastBlock = tx.height;
+    const txs = await eth.getTransactions(tkopts);
+
+    for (const tx of txs) {
       const amt = amts.shift();
 
       t0.ok(Number(tx.amount[0]) === Number(amt), "amount matches");
-    });
+    }
+
     t.ok(amts.length === 0, "all expected  transactions found");
     t0.end();
   });

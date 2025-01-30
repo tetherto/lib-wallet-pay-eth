@@ -102,10 +102,8 @@ const result = await ethPay.sendTransaction({
 })
 
 // Get a list of transactions 
-await ethPay.getTransactions({
+const txs = await ethPay.getTransactions({
     token : "USDT",
-}, (txs) => {
-    //iterate through entire tx history
 })
 
 // Is address a valid Ethereum address? 
@@ -140,17 +138,14 @@ console.log(newAddress); // Output: { address: '0x...', path: 'm/44'/60'/0'/0/0'
 
 #### 📜 `getTransactions(opts, fn)`
 * **Description**: Retrieves the transaction history for the wallet or a specific token.
-* **Return Value**: A Promise that resolves when all transactions have been processed.
+* **Return Value**: A list of transaction objects.
 * **Parameters**:
   + `opts` (optional): An object containing options.
     - `token` (optional): Name of the token for token transaction history.
-  + `fn`: Callback function to handle each block of transactions.
 
 Example usage:
 ```javascript
-await wallet.getTransactions({}, (block) => {
-  console.log(block); // Output: Array of transactions in this block
-});
+const txs = await wallet.getTransactions({});
 ```
 
 #### 💰 `getBalance(opts, addr)`
