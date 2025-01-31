@@ -38,7 +38,7 @@ class Ethereum extends GasCurrencyBase {
   }
 
   isUnitOf (amount) {
-    return Ethereum.IsEthereum(amount)
+    return Ethereum.isEthereum(amount)
   }
 }
 
