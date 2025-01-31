@@ -20,7 +20,7 @@ const { WalletStoreHyperbee } = require("lib-wallet-store");
 const BIP39Seed = require("wallet-seed-bip39");
 const Provider = require("lib-wallet-pay-evm/src/provider.js");
 const { ethereum: TestNode } = require("wallet-lib-test-tools");
-const { Erc20CurrencyFactory, GasCurrency } = require("lib-wallet-util-evm");
+const { Erc20CurrencyFactory, GasCurrencyBase } = require("lib-wallet-util-evm");
 const ERC20 = require("lib-wallet-pay-evm/src/erc20.js");
 const opts = require("./test.opts.json");
 const fs = require("fs");
@@ -182,8 +182,8 @@ async function syncTest(t, sync) {
     const amt = amts.shift();
 
     t0.ok(
-      new GasCurrency(...tx.amount).toBaseUnit() ===
-        new GasCurrency(amt, "main", {
+      new GasCurrencyBase(...tx.amount).toBaseUnit() ===
+        new GasCurrencyBase(amt, "main", {
           name: "ETH",
           base_name: "wei",
           decimals: 18,
