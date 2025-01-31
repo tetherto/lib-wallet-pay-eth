@@ -91,7 +91,9 @@ class WalletPayEthereum extends EvmPay {
   async _syncPath (addr, signal, startFrom) {
     const provider = this.provider
     const path = addr.path
-    const tx = await provider.getTransactionsByAddress({ address: addr.address, fromBlock: startFrom })
+    const tx = provider.retryable(() => {
+      return provider.getTransactionsByAddress({ address: addr.address, fromBlock: startFrom })
+    })
     if (tx.length === 0) {
       this.emit('synced-path', path)
       return signal.noTx
