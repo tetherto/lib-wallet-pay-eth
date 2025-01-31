@@ -47,7 +47,7 @@ class WalletPayEthereum extends EvmPay {
     config.GasCurrency = Ethereum
     super(config)
 
-    this.web3 = config?.provider?.web
+    this.web3 = config?.provider?.web3
 
     this.startSyncTxFromBlock = 6810041
 
