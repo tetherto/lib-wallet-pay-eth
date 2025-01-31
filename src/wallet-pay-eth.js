@@ -15,32 +15,10 @@
 'use strict'
 const { WalletPay } = require('lib-wallet')
 const { EvmPay } = require('lib-wallet-pay-evm')
-const { GasCurrencyBase } = require('lib-wallet-util-evm')
 const KM = require('./wallet-key-eth.js')
 const FeeEstimate = require('./fee-estimate.js')
+const Ethereum = require('./eth.currency.js')
 const TxEntry = WalletPay.TxEntry
-
-class Ethereum extends GasCurrencyBase {
-  constructor () {
-    super(...arguments)
-    const opts = arguments[2] || {}
-    opts.name = opts.name ||  'ETH'
-    opts.base_name = opts.base_name || 'WEI'
-    opts.decimal_places = opts.decimal_places || 18
-    this.name = opts.name
-    this.base_name = opts.base_name
-    this.decimal_places = opts.decimal_places
-  }
-
-  static isEthereum (v) {
-    if (!(v instanceof Ethereum)) throw new Error('Amount must be an instance of Ethereum')
-    return true
-  }
-
-  isUnitOf (amount) {
-    return Ethereum.isEthereum(amount)
-  }
-}
 
 class WalletPayEthereum extends EvmPay {
   constructor (config) {
