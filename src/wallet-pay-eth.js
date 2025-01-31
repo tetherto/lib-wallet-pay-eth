@@ -32,13 +32,13 @@ class Ethereum extends GasCurrencyBase {
     this.decimal_places = opts.decimal_places
   }
 
-  static IsEthereum (v) {
+  static isEthereum (v) {
     if (!(v instanceof Ethereum)) throw new Error('Amount must be an instance of Ethereum')
     return true
   }
 
   isUnitOf (amount) {
-    return Ethereum.isEthereum(amount)
+    return Ethereum.IsEthereum(amount)
   }
 }
 
