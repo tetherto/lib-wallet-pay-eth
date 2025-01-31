@@ -42,13 +42,12 @@ class Ethereum extends GasCurrencyBase {
   }
 }
 
-
 class WalletPayEthereum extends EvmPay {
   constructor (config) {
     config.GasCurrency = Ethereum
     super(config)
 
-    this.web3 = config?.provider?.web3
+    this.web3 = config?.provider?.web
 
     this.startSyncTxFromBlock = 6810041
 
@@ -110,6 +109,10 @@ class WalletPayEthereum extends EvmPay {
 
   async _storeTx (tx) {
     const txEntry = new TxEntry({
+      from: tx.from.toLowerCase(),
+      to: tx.to.toLowerCase(),
+      value: new Ethereum(tx.value, 'base', this.gas_token),
+      height: tx.blockNumber,
       txid: tx.hash,
       from_address: tx.from.toLowerCase(),
       to_address: tx.to.toLowerCase(),
