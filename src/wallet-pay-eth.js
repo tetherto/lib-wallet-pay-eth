@@ -66,6 +66,22 @@ class WalletPayEthereum extends EvmPay {
     })
   }
 
+  async _getTxEntry (tx) {
+    const txEntry = new TxEntry({
+      txid: tx.hash || tx.transactionHash || tx.txid,
+      from_address: tx.from.toLowerCase(),
+      to_address: tx.to.toLowerCase(),
+      amount: new Ethereum(tx.value, 'base'),
+      fee: new Ethereum(tx.gas * tx.gasPrice, 'base'),
+      fee_rate: new Ethereum(tx.gasPrice, 'base'),
+      height: Number(tx.blockNumber),
+      direction: await this._getDirection(tx),
+      currency: "ETH"
+    })
+
+    return txEntry
+  }
+
   async _syncPath (addr, signal, startFrom) {
     const provider = this.provider
     const path = addr.path
@@ -88,21 +104,7 @@ class WalletPayEthereum extends EvmPay {
   }
 
   async _storeTx (tx) {
-    const txEntry = new TxEntry({
-      from: tx.from.toLowerCase(),
-      to: tx.to.toLowerCase(),
-      value: new Ethereum(tx.value, 'base'), 
-      height: tx.blockNumber,
-      txid: tx.hash,
-      from_address: tx.from.toLowerCase(),
-      to_address: tx.to.toLowerCase(),
-      amount: new Ethereum(tx.value, 'base'),
-      fee: new Ethereum(tx.gas * tx.gasPrice, 'base'),
-      fee_rate: new Ethereum(tx.gasPrice, 'base'),
-      height: Number(tx.blockNumber),
-      direction: await this._getDirection(tx),
-      currency: "ETH"
-    })
+    const txEntry = await this._getTxEntry(tx)
     
     await this.state.storeTxHistory(txEntry)
 
@@ -189,7 +191,7 @@ class WalletPayEthereum extends EvmPay {
 
     const signed = await web3.eth.accounts.signTransaction(tx, sender.privateKey)
 
-    return { signed, sender, tx }
+    return { signed, sender, tx: { value: tx.value } }
   }
 
   /**
@@ -212,6 +214,10 @@ class WalletPayEthereum extends EvmPay {
 
     const getSignedTx = opts.token ? _getSignedTxWrapper : this._getSignedTx
 
+    const _getTxEntryWrapper = (transfer) => this.callToken('_getTxEntry', opts.token, [transfer])
+
+    const getTxEntry = opts.token ? _getTxEntryWrapper : this._getTxEntry
+
     let notify
 
     const p = new Promise((resolve, reject) => {
@@ -221,10 +227,19 @@ class WalletPayEthereum extends EvmPay {
           : this.updateBalances(opts)
       )
         .then(() =>
-          getSignedTx.apply(this, [outgoing]).then(({ signed }) => {
+          getSignedTx.apply(this, [outgoing]).then(({ signed, tx: { value } }) => {
+            function _getTx (receipt) {
+              return {
+                ...receipt,
+                gas: receipt.gasUsed,
+                gasPrice: receipt.effectiveGasPrice,
+                value
+              }
+            }
+
             this.provider.web3.eth.sendSignedTransaction(signed.rawTransaction)
-              .on('receipt', (tx) => { if (notify) return notify(tx) })
-              .once('confirmation', (tx) => { resolve(tx) })
+              .on('receipt', (receipt) => { if (notify) getTxEntry.apply(this, [_getTx(receipt)]).then(txEntry => notify(txEntry)) })
+              .once('confirmation', (data) => { getTxEntry.apply(this, [_getTx(data.receipt)]).then(txEntry => resolve({ ...data, receipt: txEntry })) })
               .on('error', (err) => reject(err))
           }))
     })
