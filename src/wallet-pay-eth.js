@@ -211,7 +211,7 @@ class WalletPayEthereum extends EvmPay {
   * @return {Promise} Promise - when tx is confirmed
   */
   sendTransaction (opts, outgoing) {
-    const _getSignedTxWrapper = (outgoing) => this.callToken('_getSignedTx', opts.token, [outgoing])
+    const _getSignedTxWrapper = (outgoing) => this.callToken('getSignedTx', opts.token, [outgoing])
 
     const getSignedTx = opts.token ? _getSignedTxWrapper : this._getSignedTx
 
