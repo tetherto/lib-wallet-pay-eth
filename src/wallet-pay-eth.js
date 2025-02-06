@@ -234,7 +234,7 @@ class WalletPayEthereum extends EvmPay {
                 fee: new Ethereum(receipt.gasUsed * receipt.effectiveGasPrice, 'base'),
                 fee_rate: new Ethereum(receipt.effectiveGasPrice, 'base'),
                 height: Number(receipt.blockNumber),
-                direction: await this._getDirection(receipt),
+                direction: await this._getDirection(rawTxEntry),
                 currency: rawTxEntry.currency
               })
             }
