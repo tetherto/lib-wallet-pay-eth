@@ -66,22 +66,6 @@ class WalletPayEthereum extends EvmPay {
     })
   }
 
-  async _getTxEntry (tx) {
-    const txEntry = new TxEntry({
-      txid: tx.hash || tx.transactionHash || tx.txid,
-      from_address: tx.from.toLowerCase(),
-      to_address: tx.to.toLowerCase(),
-      amount: new Ethereum(tx.value, 'base'),
-      fee: new Ethereum(tx.gas * tx.gasPrice, 'base'),
-      fee_rate: new Ethereum(tx.gasPrice, 'base'),
-      height: Number(tx.blockNumber),
-      direction: await this._getDirection(tx),
-      currency: "ETH"
-    })
-
-    return txEntry
-  }
-
   async _syncPath (addr, signal, startFrom) {
     const provider = this.provider
     const path = addr.path
@@ -104,7 +88,17 @@ class WalletPayEthereum extends EvmPay {
   }
 
   async _storeTx (tx) {
-    const txEntry = await this._getTxEntry(tx)
+    const txEntry = new TxEntry({
+      txid: tx.hash,
+      from_address: tx.from.toLowerCase(),
+      to_address: tx.to.toLowerCase(),
+      amount: new Ethereum(tx.value, 'base'),
+      fee: new Ethereum(tx.gas * tx.gasPrice, 'base'),
+      fee_rate: new Ethereum(tx.gasPrice, 'base'),
+      height: Number(tx.blockNumber),
+      direction: await this._getDirection(tx),
+      currency: "ETH"
+    })
     
     await this.state.storeTxHistory(txEntry)
 
@@ -191,7 +185,14 @@ class WalletPayEthereum extends EvmPay {
 
     const signed = await web3.eth.accounts.signTransaction(tx, sender.privateKey)
 
-    return { signed, sender, tx: { value: tx.value } }
+    const rawTxEntry = { 
+      amount, 
+      currency: "ETH",
+      from: sender.address,
+      to: outgoing.address
+    }
+
+    return { signed, rawTxEntry }
   }
 
   /**
@@ -214,10 +215,6 @@ class WalletPayEthereum extends EvmPay {
 
     const getSignedTx = opts.token ? _getSignedTxWrapper : this._getSignedTx
 
-    const _getTxEntryWrapper = (transfer) => this.callToken('_getTxEntry', opts.token, [transfer])
-
-    const getTxEntry = opts.token ? _getTxEntryWrapper : this._getTxEntry
-
     let notify
 
     const p = new Promise((resolve, reject) => {
@@ -227,23 +224,33 @@ class WalletPayEthereum extends EvmPay {
           : this.updateBalances(opts)
       )
         .then(() =>
-          getSignedTx.apply(this, [outgoing]).then(({ signed, tx: { value } }) => {
-            function _getTx (receipt) {
-              return {
-                ...receipt,
-                gas: receipt.gasUsed,
-                gasPrice: receipt.effectiveGasPrice,
-                value
-              }
+          getSignedTx.apply(this, [outgoing]).then(({ signed, rawTxEntry }) => {
+            async function _getTx (receipt) {
+              return new TxEntry({
+                txid: receipt.transactionHash,
+                from_address: rawTxEntry.from.toLowerCase(),
+                to_address: rawTxEntry.to.toLowerCase(),
+                amount: rawTxEntry.amount,
+                fee: new Ethereum(receipt.gasUsed * receipt.effectiveGasPrice, 'base'),
+                fee_rate: new Ethereum(receipt.effectiveGasPrice, 'base'),
+                height: Number(receipt.blockNumber),
+                direction: await this._getDirection(receipt),
+                currency: rawTxEntry.currency
+              })
             }
 
             this.provider.web3.eth.sendSignedTransaction(signed.rawTransaction)
-              .on('receipt', (receipt) => { if (notify) getTxEntry.apply(this, [_getTx(receipt)]).then(txEntry => notify(txEntry)) })
-              .once('confirmation', (data) => { getTxEntry.apply(this, [_getTx(data.receipt)]).then(txEntry => resolve({ ...data, receipt: txEntry })) })
-              .on('error', (err) => reject(err))
+              .on('receipt', (receipt) => 
+                { if (notify) _getTx.apply(this, [receipt]).then(txEntry => notify(txEntry)) })
+              .once('confirmation', ({ confirmations, latestBlockHash, receipt }) => 
+                { _getTx.apply(this, [receipt]).then(txEntry => resolve({ confirmations, latestBlockHash, txEntry })) })
+              .on('error', (error) => 
+                { reject(error) })
           }))
     })
+
     p.broadcasted = (fn) => { notify = fn }
+
     return p
   }
 
