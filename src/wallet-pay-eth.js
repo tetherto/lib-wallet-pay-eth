@@ -262,6 +262,19 @@ class WalletPayEthereum extends EvmPay {
     return this._feeEst.getFeeEstimate()
   }
 
+  async sign (message, address) {
+    const addr = await this._hdWallet.getAddress(address)
+
+    if (!addr)
+      throw new Error("invalid address")
+
+    const hex = this.web3.utils.utf8ToHex(message)
+
+    const data = await this.web3.eth.accounts.sign(hex, addr.privateKey)
+
+    return data.signature
+  }
+
   isValidAddress (address) {
     return this.web3.utils.isAddress(address)
   }
