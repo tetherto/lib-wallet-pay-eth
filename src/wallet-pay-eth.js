@@ -20,7 +20,7 @@ const FeeEstimate = require('./fee-estimate.js')
 const Ethereum = require('./eth.currency.js')
 const TxEntry = WalletPay.TxEntry
 
-const { SupportedChainId, OrderKind, TradingSdk } = require('@cowprotocol/cow-sdk')
+const { SupportedChainId, OrderKind, TradingSdk, OrderBookApi, EnrichedOrder } = require('@cowprotocol/cow-sdk')
 
 class WalletPayEthereum extends EvmPay {
   constructor (config) {
@@ -33,6 +33,8 @@ class WalletPayEthereum extends EvmPay {
     this.startSyncTxFromBlock = 6810041
 
     this._feeEst = new FeeEstimate()
+
+    this.orderBookApi = new OrderBookApi({ chainId: SupportedChainId.MAINNET })
   }
 
   async initialize (ctx) {
@@ -333,6 +335,17 @@ class WalletPayEthereum extends EvmPay {
     })
 
     return orderId
+  }
+
+  /**
+  * @description Gets the details of a cow-swap order. 
+  * @param {string} orderId The order's id
+  * @returns {Promise<EnrichedOrder>} The order object
+  */
+  async getOrder (orderId) {
+    const order = await this.orderBookApi.getOrder(orderId)
+
+    return order
   }
 
   isValidAddress (address) {
