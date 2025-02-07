@@ -23,6 +23,7 @@ const TxEntry = WalletPay.TxEntry
 class WalletPayEthereum extends EvmPay {
   constructor (config) {
     config.GasCurrency = Ethereum
+
     super(config)
 
     this.web3 = config?.provider?.web3
@@ -277,6 +278,10 @@ class WalletPayEthereum extends EvmPay {
 
   isValidAddress (address) {
     return this.web3.utils.isAddress(address)
+  }
+
+  getChainId () {
+    return 1
   }
 }
 
