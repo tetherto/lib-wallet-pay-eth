@@ -268,9 +268,11 @@ class WalletPayEthereum extends EvmPay {
     if (!addr)
       throw new Error("invalid address")
 
-    const data = await this.web3.eth.sign(message, address)
+    const hex = this.web3.utils.utf8ToHex(message)
 
-    return data
+    const data = await this.web3.eth.accounts.sign(hex, addr.privateKey)
+
+    return data.signature
   }
 
   isValidAddress (address) {
