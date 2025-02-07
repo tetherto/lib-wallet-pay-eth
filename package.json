@@ -13,7 +13,6 @@
   "author": "rbndg",
   "license": "APACHE-2.0",
   "dependencies": {
-    "@cowprotocol/cow-sdk": "^5.10.0",
     "@ethereumjs/wallet": "^2.0.3",
     "lib-wallet-pay-evm": "github:rbndg/lib-wallet-pay-evm",
     "lib-wallet-util-evm": "github:rbndg/lib-wallet-util-evm"

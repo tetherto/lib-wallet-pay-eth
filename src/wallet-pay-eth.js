@@ -20,8 +20,6 @@ const FeeEstimate = require('./fee-estimate.js')
 const Ethereum = require('./eth.currency.js')
 const TxEntry = WalletPay.TxEntry
 
-const { SupportedChainId, OrderKind, TradingSdk, OrderBookApi, EnrichedOrder } = require('@cowprotocol/cow-sdk')
-
 class WalletPayEthereum extends EvmPay {
   constructor (config) {
     config.GasCurrency = Ethereum
@@ -33,8 +31,6 @@ class WalletPayEthereum extends EvmPay {
     this.startSyncTxFromBlock = 6810041
 
     this._feeEst = new FeeEstimate()
-
-    this.orderBookApi = new OrderBookApi({ chainId: SupportedChainId.MAINNET })
   }
 
   async initialize (ctx) {
@@ -280,76 +276,12 @@ class WalletPayEthereum extends EvmPay {
     return data.signature
   }
 
-  /**
-  * @description Swaps a token for another using [cow-swap](https://cow.fi/)
-  * @param {object} opts The swap's options
-  * @param {string} opts.address The address of the sender
-  * @param {string} opts.recipient The address that will receive the 'tokenOut' tokens
-  * @param {string} opts.tokenIn The token to sell (e.g. "WETH")
-  * @param {string} opts.tokenOut The token to buy (e.g. "USDT")
-  * @param {number=} opts.tokenInAmount The amount of 'tokenIn' tokens to sell
-  * @param {number=} opts.tokenOutAmount The amount of 'tokenOut' tokens to buy
-  * @param {string=} opts.amountUnit The unit used for 'amountIn' or 'amountOut'; available values: "main", "base" (default: "base")
-  * @returns {Promise<string>} The swap's order id
-  */
-  async swap(opts) {
-    const { address, recipient, tokenInAmount, tokenOutAmount, amountUnit } = opts
-
-    if (opts.tokenIn == opts.tokenOut)
-      throw new Error("'tokenIn' and 'tokenOut' cannot be equal.")
-
-    if (!tokenInAmount && !tokenOutAmount)
-      throw new Error("A valid 'tokenInAmount' or 'tokenOutAmount' must be passed.")
-
-    if (tokenInAmount && tokenOutAmount)
-      throw new Error("Cannot use both 'tokenInAmount' and 'tokenOutAmount' arguments.")
-
-    const addr = await this._hdWallet.getAddress(address)
-
-    if (!addr)
-      throw new Error("invalid address")
-
-    const tokenIn = await this.callToken('getTokenInfo', opts.tokenIn),
-          tokenOut = await this.callToken('getTokenInfo', opts.tokenOut)
-
-    const kind = tokenInAmount ? OrderKind.SELL : OrderKind.BUY
-
-    const amount = kind == OrderKind.SELL ?
-      new tokenIn.Currency(tokenInAmount, amountUnit || "base") :
-      new tokenOut.Currency(tokenOutAmount, amountUnit || "base")
-
-    const sdk = new TradingSdk({
-      chainId: SupportedChainId.MAINNET,
-      signer: addr.privateKey
-    })
-
-    const orderId = await sdk.postSwapOrder({
-      kind,
-      sellToken: tokenIn.contractAddress,
-      sellTokenDecimals: tokenIn.Currency.decimal_places,
-      buyToken: tokenOut.contractAddress,
-      buyTokenDecimals: tokenOut.Currency.decimal_places,
-      amount: amount.toBaseUnit(),
-      receiver: recipient,
-      validFor: 60
-    })
-
-    return orderId
-  }
-
-  /**
-  * @description Gets the details of a cow-swap order. 
-  * @param {string} orderId The order's id
-  * @returns {Promise<EnrichedOrder>} The order object
-  */
-  async getOrder (orderId) {
-    const order = await this.orderBookApi.getOrder(orderId)
-
-    return order
-  }
-
   isValidAddress (address) {
     return this.web3.utils.isAddress(address)
+  }
+
+  getChainId () {
+    return 1
   }
 }
 
