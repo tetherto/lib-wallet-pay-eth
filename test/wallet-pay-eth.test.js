@@ -305,6 +305,7 @@ test("listen to last address on start", async (t) => {
   t.alike(addrs, addrTest, "should subscribe to list of address on start");
   await eth2.destroy();
 });
+
 (() => {
   const tkopts = { token: USDT.name };
 
