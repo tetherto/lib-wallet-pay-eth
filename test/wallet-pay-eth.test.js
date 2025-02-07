@@ -224,7 +224,7 @@ test("sendTransaction", async (t) => {
   let bcast = false;
   res.broadcasted((tx) => {
     t.ok(
-      tx.to.toString().toLowerCase() === nodeAddr.toLowerCase(),
+      tx.to_address[0] === nodeAddr.toLowerCase(),
       "recipient is correct"
     );
     // TODO: Fetch tx from servers and compare values with sent values
