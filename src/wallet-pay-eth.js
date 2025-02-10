@@ -89,10 +89,6 @@ class WalletPayEthereum extends EvmPay {
 
   async _storeTx (tx) {
     const txEntry = new TxEntry({
-      from: tx.from.toLowerCase(),
-      to: tx.to.toLowerCase(),
-      value: new Ethereum(tx.value, 'base'), 
-      height: tx.blockNumber,
       txid: tx.hash,
       from_address: tx.from.toLowerCase(),
       to_address: tx.to.toLowerCase(),
@@ -189,7 +185,14 @@ class WalletPayEthereum extends EvmPay {
 
     const signed = await web3.eth.accounts.signTransaction(tx, sender.privateKey)
 
-    return { signed, sender, tx }
+    const rawTxEntry = { 
+      amount, 
+      currency: "ETH",
+      from: sender.address,
+      to: outgoing.address
+    }
+
+    return { signed, rawTxEntry }
   }
 
   /**
@@ -208,7 +211,7 @@ class WalletPayEthereum extends EvmPay {
   * @return {Promise} Promise - when tx is confirmed
   */
   sendTransaction (opts, outgoing) {
-    const _getSignedTxWrapper = (outgoing) => this.callToken('_getSignedTx', opts.token, [outgoing])
+    const _getSignedTxWrapper = (outgoing) => this.callToken('getSignedTx', opts.token, [outgoing])
 
     const getSignedTx = opts.token ? _getSignedTxWrapper : this._getSignedTx
 
@@ -221,14 +224,33 @@ class WalletPayEthereum extends EvmPay {
           : this.updateBalances(opts)
       )
         .then(() =>
-          getSignedTx.apply(this, [outgoing]).then(({ signed }) => {
+          getSignedTx.apply(this, [outgoing]).then(({ signed, rawTxEntry }) => {
+            async function _getTx (receipt) {
+              return new TxEntry({
+                txid: receipt.transactionHash,
+                from_address: rawTxEntry.from.toLowerCase(),
+                to_address: rawTxEntry.to.toLowerCase(),
+                amount: rawTxEntry.amount,
+                fee: new Ethereum(receipt.gasUsed * receipt.effectiveGasPrice, 'base'),
+                fee_rate: new Ethereum(receipt.effectiveGasPrice, 'base'),
+                height: Number(receipt.blockNumber),
+                direction: await this._getDirection(rawTxEntry),
+                currency: rawTxEntry.currency
+              })
+            }
+
             this.provider.web3.eth.sendSignedTransaction(signed.rawTransaction)
-              .on('receipt', (tx) => { if (notify) return notify(tx) })
-              .once('confirmation', (tx) => { resolve(tx) })
-              .on('error', (err) => reject(err))
+              .on('receipt', (receipt) => 
+                { if (notify) _getTx.apply(this, [receipt]).then(txEntry => notify(txEntry)) })
+              .once('confirmation', ({ confirmations, latestBlockHash, receipt }) => 
+                { _getTx.apply(this, [receipt]).then(txEntry => resolve({ confirmations, latestBlockHash, txEntry })) })
+              .on('error', (error) => 
+                { reject(error) })
           }))
     })
+
     p.broadcasted = (fn) => { notify = fn }
+
     return p
   }
 
