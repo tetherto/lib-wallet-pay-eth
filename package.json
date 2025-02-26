@@ -8,15 +8,15 @@
   },
   "scripts": {
     "lint": "standard --fix",
-    "test:pay": "brittle test/wallet-pay-eth.test.js"
+    "test:pay": "brittle test/wallet-pay-eth.test.js",
+    "test:safe": "brittle test/safe/safe.test.js"
   },
   "author": "rbndg",
   "license": "APACHE-2.0",
   "dependencies": {
     "@ethereumjs/wallet": "^2.0.3",
-    "@flashbots/mev-share-client": "^0.7.13",
-    "lib-wallet-pay-evm": "github:tetherto/lib-wallet-pay-evm",
-    "lib-wallet-util-evm": "github:tetherto/lib-wallet-util-evm"
+    "lib-wallet-pay-evm": "github:itsdeka/lib-wallet-pay-evm",
+    "lib-wallet-util-evm": "github:rbndg/lib-wallet-util-evm"
   },
   "devDependencies": {
     "brittle": "^3.5.2",

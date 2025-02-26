@@ -13,27 +13,30 @@
 // limitations under the License.
 
 'use strict'
+const { WalletPay } = require('lib-wallet')
 const { EvmPay } = require('lib-wallet-pay-evm')
-const { GasCurrency } = require('lib-wallet-util-evm')
-const { Wallet } = require('ethers')
-const MevShareClient = require('@flashbots/mev-share-client')
+const KM = require('./wallet-key-eth.js')
+const FeeEstimate = require('./fee-estimate.js')
+const Ethereum = require('./eth.currency.js')
+const TxEntry = WalletPay.TxEntry
 
 class WalletPayEthereum extends EvmPay {
   constructor (config) {
+    config.GasCurrency = Ethereum
+
     super(config)
 
     this.web3 = config?.provider?.web3
 
-    this.startSyncTxFromBlock = 0
+    this.startSyncTxFromBlock = 6810041
 
-    const authSigner = new Wallet(config.auth_signer_private_key).connect(config.provider)
-
-    this.mevShareClient = MevShareClient.default.useEthereumMainnet(authSigner)
+    this._feeEst = new FeeEstimate()
   }
 
   async initialize (ctx) {
+    const km = new KM({ network: this.network })
     return await this._initialize(ctx, {
-      defaultKeyManager: new (require('./wallet-key-eth.js'))({ network: this.network }),
+      defaultKeyManager: km,
       providerConfig: {
         web3: this.config.web3,
         indexer: this.config.indexer_rpc,
@@ -42,14 +45,15 @@ class WalletPayEthereum extends EvmPay {
       walletConfig: {
         name: 'hdwallet-eth',
         coinType: "60'",
-        purpose: "44'"
+        purpose: "44'",
+        gapLimit: 5
       },
       stateConfig: {
-        name: "state-eth"
+        name: 'state-eth'
       },
       newTxCallback: async (res, token) => {
         const tx = await token.updateTxEvent(res)
-        
+
         return {
           token: token.name,
           address: res.address,
@@ -66,7 +70,9 @@ class WalletPayEthereum extends EvmPay {
   async _syncPath (addr, signal, startFrom) {
     const provider = this.provider
     const path = addr.path
-    const tx = await provider.getTransactionsByAddress({ address: addr.address, fromBlock: startFrom })
+    const tx = await provider.retryable(() => {
+      return provider.getTransactionsByAddress({ address: addr.address, fromBlock: startFrom })
+    })
     if (tx.length === 0) {
       this.emit('synced-path', path)
       return signal.noTx
@@ -75,22 +81,29 @@ class WalletPayEthereum extends EvmPay {
     for (const t of tx) {
       await this._storeTx(t)
     }
-    return tx.length > 0 ? signal.hasTx : signal.noTx
+    if(tx.length > 0) { 
+      await this._hdWallet.addAddress(addr)
+      return signal.hasTx
+    }
+    return signal.noTx
   }
 
   async _storeTx (tx) {
-    const data = {
-      from: tx.from.toLowerCase(),
-      to: tx.to.toLowerCase(),
-      value: new GasCurrency(tx.value, 'base', this.gas_token),
-      height: tx.blockNumber,
+    const txEntry = new TxEntry({
       txid: tx.hash,
-      gas: Number(tx.gas),
-      maxPriorityFeePerGas: Number(tx.maxPriorityFeePerGas),
-      maxFeePerGas: Number(tx.maxFeePerGas)
-    }
-    await this.state.storeTxHistory(data)
-    return data
+      from_address: tx.from.toLowerCase(),
+      to_address: tx.to.toLowerCase(),
+      amount: new Ethereum(tx.value, 'base'),
+      fee: new Ethereum(tx.gas * tx.gasPrice, 'base'),
+      fee_rate: new Ethereum(tx.gasPrice, 'base'),
+      height: Number(tx.blockNumber),
+      direction: await this._getDirection(tx),
+      currency: "ETH"
+    })
+    
+    await this.state.storeTxHistory(txEntry)
+
+    return txEntry
   }
 
   async syncTransactions (opts = {}) {
@@ -107,7 +120,7 @@ class WalletPayEthereum extends EvmPay {
 
     const latestBlock = Number(await this.web3.eth.getBlockNumber())
 
-    await state._hdWallet.eachAccount(async (syncState, signal) => {
+    await state._hdWallet.eachExtAccount(async (syncState, signal) => {
       if (this._halt) return signal.stop
       const { addr } = keyManager.addrFromPath(syncState.path)
       if (opts.token) return await this.callToken('syncPath', opts.token, [addr, signal, this.startSyncTxFromBlock])
@@ -138,7 +151,7 @@ class WalletPayEthereum extends EvmPay {
 
   async _getSignedTx (outgoing) {
     const { web3 } = this.provider
-    const amount = new GasCurrency(outgoing.amount, outgoing.unit)
+    const amount = new Ethereum(outgoing.amount, outgoing.unit)
     let sender
 
     if (!outgoing.sender) {
@@ -150,7 +163,7 @@ class WalletPayEthereum extends EvmPay {
 
     if (!sender) throw new Error('insufficient balance or invalid sender')
 
-    let gasLimit = outgoing.gasLimit;
+    let gasLimit = outgoing.gasLimit
 
     if (!gasLimit) {
       gasLimit = await web3.eth.estimateGas({
@@ -173,7 +186,14 @@ class WalletPayEthereum extends EvmPay {
 
     const signed = await web3.eth.accounts.signTransaction(tx, sender.privateKey)
 
-    return { signed, sender, tx }
+    const rawTxEntry = { 
+      amount, 
+      currency: "ETH",
+      from: sender.address,
+      to: outgoing.address
+    }
+
+    return { signed, rawTxEntry }
   }
 
   /**
@@ -192,7 +212,7 @@ class WalletPayEthereum extends EvmPay {
   * @return {Promise} Promise - when tx is confirmed
   */
   sendTransaction (opts, outgoing) {
-    const _getSignedTxWrapper = (outgoing) => this.callToken('_getSignedTx', opts.token, [outgoing]) 
+    const _getSignedTxWrapper = (outgoing) => this.callToken('getSignedTx', opts.token, [outgoing])
 
     const getSignedTx = opts.token ? _getSignedTxWrapper : this._getSignedTx
 
@@ -200,53 +220,68 @@ class WalletPayEthereum extends EvmPay {
 
     const p = new Promise((resolve, reject) => {
       (
-        outgoing.sender ?
-          this.updateBalance(opts, outgoing.sender) :
-          this.updateBalances(opts)
+        outgoing.sender
+          ? this.updateBalance(opts, outgoing.sender)
+          : this.updateBalances(opts)
       )
-        .then(() => 
-          getSignedTx.apply(this, [outgoing]).then(({ signed }) => {
+        .then(() =>
+          getSignedTx.apply(this, [outgoing]).then(({ signed, rawTxEntry }) => {
+            async function _getTx (receipt) {
+              return new TxEntry({
+                txid: receipt.transactionHash,
+                from_address: rawTxEntry.from.toLowerCase(),
+                to_address: rawTxEntry.to.toLowerCase(),
+                amount: rawTxEntry.amount,
+                fee: new Ethereum(receipt.gasUsed * receipt.effectiveGasPrice, 'base'),
+                fee_rate: new Ethereum(receipt.effectiveGasPrice, 'base'),
+                height: Number(receipt.blockNumber),
+                direction: await this._getDirection(rawTxEntry),
+                currency: rawTxEntry.currency
+              })
+            }
+
             this.provider.web3.eth.sendSignedTransaction(signed.rawTransaction)
-              .on('receipt', (tx) => { if (notify) return notify(tx) })
-              .once('confirmation', (tx) => { resolve(tx)})
-              .on('error', (err) => reject(err))
+              .on('receipt', (receipt) => 
+                { if (notify) _getTx.apply(this, [receipt]).then(txEntry => notify(txEntry)) })
+              .once('confirmation', ({ confirmations, latestBlockHash, receipt }) => 
+                { _getTx.apply(this, [receipt]).then(txEntry => resolve({ confirmations, latestBlockHash, txEntry })) })
+              .on('error', (error) => 
+                { reject(error) })
           }))
     })
-    p.broadcasted = (fn) => { notify = fn }
-    return p
-  }
 
-  /**
-  * @description Send a transaction
-  * @param {object} outgoing outgoing options
-  * @param {number} outgoing.amount Number of units being sent
-  * @param {string} outgoing.unit unit of amount. main or base
-  * @param {string} outgoing.address address of reciever
-  * @param {string?} outgoing.data data to be passed
-  * @param {string=} outgoing.sender address of sender
-  * @param {number=} outgoing.gasLimit ETH gas limit
-  * @param {number=} outgoing.maxFeePerGas ETH gas price
-  * @param {number=} outgoing.maxPriorityFeePerGas ETH gas price
-  * @param {object} hints hints flashbots options
-  * @param {bool} hints.calldata Pass calldata
-  * @param {bool} hints.logs Pass logs
-  * @param {bool} hints.contractAddress Pass contractAddress
-  * @param {bool} hints.functionSelector Pass functionSelector
-  * @param {number=} maxBlockNumber Max block number
-  * @return {Promise} Promise - tx hash when sent
-  */
-  async sendTransactionToFlashbotRpc (outgoing, hints, maxBlockNumber) {
-    this._getSignedTx(outgoing).then(async ({ signed }) => {
-      return await this.mevShareClient.sendTransaction(signed, {hints, maxBlockNumber})
-    });
+    p.broadcasted = (fn) => { notify = fn }
+
+    return p
   }
 
   async getBalanceFromProvider (addr) {
     return await this.web3.eth.getBalance(addr)
   }
 
+  async getFeeEstimate () {
+    return this._feeEst.getFeeEstimate()
+  }
+
+  async sign (message, address) {
+    const addr = await this._hdWallet.getAddress(address)
+
+    if (!addr)
+      throw new Error("invalid address")
+
+    const hex = this.web3.utils.utf8ToHex(message)
+
+    const data = await this.web3.eth.accounts.sign(hex, addr.privateKey)
+
+    return data.signature
+  }
+
   isValidAddress (address) {
     return this.web3.utils.isAddress(address)
+  }
+
+  getChainId () {
+    return 1
   }
 }
 

@@ -1,6 +1,6 @@
 
-test/*.opts.json
-test/tmp
+*.opts.json
+tmp
 package-lock.json
 
 # Dependency directories
